@@ -8,7 +8,7 @@ A command-line interface for the [Movidesk](https://www.movidesk.com) public RES
 - Output as JSON (default), human-readable table, or CSV.
 - Honors Movidesk's 10 req/min rate limit with automatic backoff and `Retry-After` support.
 
-> Status: **Phase 1.5 — Ticket schema + collections shipped.** Auth, HTTP client, full ticket schema typing (~80 fields), and the `tickets` family (`list`, `get`, `create`, `update`, `html`, `past list`, `merged list`, `attach`, `actions list/get/add/update/delete`, `clients list`, `relations`, `timeline`, `assets list`, `histories list`, `customfields show/set/clear/catalog`) are usable. Other resource families (persons, services, surveys, …) land in subsequent phases — see [the plan](./docs/plan.md).
+> Status: **Phase 2 — Persons + Services shipped.** Auth, HTTP client, full ticket schema, the `tickets` family, the `persons` family (`list`, `get`, `create`, `update`, `delete`, `customfields show/set/clear`) and the `services` family (`list`, `get`, `create`, `update`, `delete`) are usable. Activities, contracts, surveys, telephony, KB articles, and option-pool management land next — see [the plan](./docs/plan.md).
 
 ## Install
 
@@ -222,6 +222,76 @@ movidesk-cli tickets customfields clear 1 --field-label "Severidade"
 > endpoints manage the **option pool** of list-type fields (the dropdown
 > values themselves), not values on tickets. Those land in a future
 > `customfields options` subcommand — see the plan.
+
+## Persons
+
+The `/persons` endpoint serves agents, clients, companies, and departments —
+disambiguated by `personType` (1=Pessoa, 2=Empresa, 4=Departamento) and
+`profileType` (1=Agente, 2=Cliente, 3=Both).
+
+```bash
+# OData filters apply just like on tickets.
+movidesk-cli persons list --filter "isActive eq true and personType eq 1" --top 50
+movidesk-cli persons list --select id,businessName,emails --output csv > persons.csv
+movidesk-cli persons list --all --output table
+
+# Get a single person by Cod. Ref.
+movidesk-cli persons get acme-1234
+
+# Create from JSON, template, or --set overrides (same modes as tickets).
+movidesk-cli persons create --file person.json --return-all
+movidesk-cli persons create \
+  --set personType=1 --set profileType=2 --set isActive=true \
+  --set 'businessName=Joe Doe' --set 'cpfCnpj=01234567890'
+
+# Update partial fields. Note: array fields like `addresses`/`emails`/`teams`
+# are replaced by what you send.
+movidesk-cli persons update acme-1234 --set 'role=Manager'
+
+# Delete (irreversible, prompts unless --force).
+movidesk-cli persons delete acme-1234 --force
+```
+
+### Person custom fields
+
+Same read-merge-patch model as tickets, sharing the per-tenant catalog at
+`~/.movidesk/<tenant>/customfields.yaml`. Register a field once via
+`tickets customfields catalog add` and use the label here too.
+
+```bash
+movidesk-cli persons customfields show acme-1234
+movidesk-cli persons customfields set  acme-1234 --field-label "Squad" --item "Platform"
+movidesk-cli persons customfields set  acme-1234 --field 200 --rule 1 --item-team "Suporte"
+movidesk-cli persons customfields clear acme-1234 --field-label "Squad"
+```
+
+## Services
+
+```bash
+movidesk-cli services list --filter "isActive eq false" --orderby "id desc" --top 100
+movidesk-cli services get 5712
+movidesk-cli services list --all --output csv > services.csv
+
+# Create a service.
+movidesk-cli services create \
+  --set 'name=Suporte Avançado' \
+  --set isActive=true \
+  --set serviceForTicketType=2 \
+  --set isVisible=3 --set allowSelection=3 \
+  --set allowFinishTicket=true \
+  --set allowAllCategories=false \
+  --set 'categories=["Problema","Sugestão"]'
+
+# Update — array fields like `categories` are fully replaced by what you send.
+movidesk-cli services update 5712 --set 'categories=["Problema"]'
+
+# Delete (irreversible).
+movidesk-cli services delete 5712 --force
+```
+
+> ℹ️ When updating a parent service that has children, Movidesk keeps the
+> existing tree structure intact unless you explicitly set `parentServiceId`
+> on each child. The CLI does not auto-cascade.
 
 ## Output formats
 

@@ -351,10 +351,15 @@ make test                                                             # tudo ver
 ./bin/movidesk-cli tickets customfields clear 1 --field-label "Severidade"
 ```
 
-**Fase 2 — Pessoas + Serviços (1 semana)**
-- `persons` CRUD completo + delete
-- `services` CRUD
-- Suporte a campos adicionais embutidos no body (`customFieldValues`)
+**Fase 2 — Pessoas + Serviços ✅ ENTREGUE**
+- `persons list/get/create/update/delete` ✅
+- `persons customfields show/set/clear` (read-merge-patch, compartilha catálogo de tickets) ✅
+- `services list/get/create/update/delete` ✅
+- Round-trip safe via `Extra json.RawMessage` em `persons.Person` e `services.Service` ✅
+- E2E tests + SDK tests todos verde com `-race -count=1` ✅
+- Default columns enriquecidos (persons: 7 cols incl. corporateName/accessProfile; services: 7 cols incl. parent/visibility) ✅
+- README seções "Persons", "Person custom fields", "Services" ✅
+- Confirmação obrigatória pra `delete` (`--force` pra skip; refusa em pipe sem `--force`) ✅
 
 **Fase 3 — Restantes (2-3 semanas)**
 - `activities`, `contracts` (+ consumption), `surveys` (questions/responses), `telephony` (com/sem fila), `kb articles`, `customfields` manipulação

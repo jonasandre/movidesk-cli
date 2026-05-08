@@ -40,6 +40,8 @@ formats output as JSON, table or CSV, and respects Movidesk's rate limit of
 
 	cmd.AddCommand(newAuthCmd())
 	cmd.AddCommand(newTicketsCmd())
+	cmd.AddCommand(newPersonsCmd())
+	cmd.AddCommand(newServicesCmd())
 	_ = flags // referenced by subcommand packages
 
 	return cmd
