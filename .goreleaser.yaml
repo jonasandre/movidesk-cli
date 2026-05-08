@@ -80,18 +80,17 @@ release:
   footer: |
     **Full Changelog**: https://github.com/jonasandre/movidesk-cli/compare/{{ .PreviousTag }}...{{ .Tag }}
 
-brews:
+homebrew_casks:
   - name: movidesk-cli
     repository:
       owner: jonasandre
       name: homebrew-movidesk
       token: '{{ .Env.HOMEBREW_TAP_TOKEN }}'
-    directory: Formula
+    directory: Casks
     homepage: https://github.com/jonasandre/movidesk-cli
     description: CLI for the Movidesk REST API
     license: MIT
-    test: |
-      assert_match "movidesk-cli", shell_output("#{bin}/movidesk-cli --version")
-    install: |
-      bin.install "movidesk-cli"
-      generate_completions_from_executable(bin/"movidesk-cli", "completion")
+    completions:
+      bash: completions/movidesk-cli.bash
+      zsh: completions/movidesk-cli.zsh
+      fish: completions/movidesk-cli.fish
