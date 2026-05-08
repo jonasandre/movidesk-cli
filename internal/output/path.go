@@ -1,6 +1,7 @@
 package output
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 )
@@ -67,6 +68,9 @@ func stringify(v any) string {
 }
 
 // asRows normalizes v to a slice of maps. Single objects become a 1-row slice.
+//
+// Auto-pagination returns []json.RawMessage; we decode each entry lazily so
+// table/csv share the same surface as a plain []any payload.
 func asRows(v any) []map[string]any {
 	switch t := v.(type) {
 	case []map[string]any:
@@ -79,6 +83,21 @@ func asRows(v any) []map[string]any {
 			}
 		}
 		return out
+	case []json.RawMessage:
+		out := make([]map[string]any, 0, len(t))
+		for _, rm := range t {
+			var m map[string]any
+			if err := json.Unmarshal(rm, &m); err == nil {
+				out = append(out, m)
+			}
+		}
+		return out
+	case json.RawMessage:
+		var m map[string]any
+		if err := json.Unmarshal(t, &m); err == nil {
+			return []map[string]any{m}
+		}
+		return nil
 	case map[string]any:
 		return []map[string]any{t}
 	default:

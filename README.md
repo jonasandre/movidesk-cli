@@ -8,7 +8,7 @@ A command-line interface for the [Movidesk](https://www.movidesk.com) public RES
 - Output as JSON (default), human-readable table, or CSV.
 - Honors Movidesk's 10 req/min rate limit with automatic backoff and `Retry-After` support.
 
-> Status: **Phase 1 — Tickets shipped.** Auth, HTTP client and the `tickets` family (`list`, `get`, `create`, `update`, `html`, `past list`, `merged list`, `attach`) are usable. Other resource families (persons, services, surveys, …) land in subsequent phases — see [the plan](./docs/plan.md).
+> Status: **Phase 1.5 — Ticket schema + collections shipped.** Auth, HTTP client, full ticket schema typing (~80 fields), and the `tickets` family (`list`, `get`, `create`, `update`, `html`, `past list`, `merged list`, `attach`, `actions list/get/add/update/delete`, `clients list`, `relations`, `timeline`, `assets list`, `histories list`, `customfields show/set/clear/catalog`) are usable. Other resource families (persons, services, surveys, …) land in subsequent phases — see [the plan](./docs/plan.md).
 
 ## Install
 
@@ -127,6 +127,101 @@ movidesk-cli tickets attach 12 --action-id 34 --file ./image.png --name "screens
 
 The action id is required; Movidesk records the upload against an existing
 ticket action.
+
+## Tickets — coleções
+
+Each subcommand fetches the ticket with the right `$expand` and surfaces the
+nested collection with sensible default columns.
+
+```bash
+# Actions of a ticket — read.
+movidesk-cli tickets actions list 1
+movidesk-cli tickets actions get 1 --action-id 5
+
+# Actions — write. Add a new action; --internal/--public are aliases for --type.
+movidesk-cli tickets actions add 1 --internal --description "Triage notes"
+movidesk-cli tickets actions add 1 --public  --description-file reply.html
+
+# Edit / soft-delete an action.
+movidesk-cli tickets actions update 1 --action-id 5 --description "Edited reply"
+movidesk-cli tickets actions delete 1 --action-id 5
+
+# Clients listed on a ticket.
+movidesk-cli tickets clients list 1 --output table
+
+# Parent / child tickets.
+movidesk-cli tickets relations 1
+
+# Chronological merge of actions, status changes, owner changes.
+movidesk-cli tickets timeline 1 --output table
+
+# Linked assets and full ownership/status histories.
+movidesk-cli tickets assets list 1
+movidesk-cli tickets histories list 1
+```
+
+## Custom fields
+
+Movidesk's `PATCH /tickets` deletes any `customFieldValues` entry not
+present in the body. The CLI handles that for you with **read-merge-patch**
+under the hood — describe the change you want, never the whole list.
+
+There is **no public API** to discover custom field definitions, so we keep
+a per-tenant local catalog at `~/.movidesk/<tenant>/customfields.yaml` that
+maps human labels to numeric `customFieldId` and `customFieldRuleId` values.
+Populate it from the IDs you see in the Movidesk UI.
+
+```bash
+# Register a field once per tenant.
+movidesk-cli tickets customfields catalog add \
+  --label "Severidade" --field 125529 --rule 7 \
+  --type list-of-values --options "Baixa,Média,Alta,Crítica"
+
+movidesk-cli tickets customfields catalog list
+movidesk-cli tickets customfields catalog remove --label "Severidade"
+```
+
+```bash
+# Read the values currently on a ticket.
+movidesk-cli tickets customfields show 1
+
+# Set a text/number/date value.
+movidesk-cli tickets customfields set 1 --field-label "Data de implantação" \
+  --value "2026-04-01T13:00:00.000Z"
+
+# Set a list-of-values item.
+movidesk-cli tickets customfields set 1 --field-label "Severidade" --item "Alta"
+
+# List of persons / clients / agent-teams.
+movidesk-cli tickets customfields set 1 --field 200 --rule 1 --item-person   "u-123"
+movidesk-cli tickets customfields set 1 --field 201 --rule 1 --item-client   "c-456"
+movidesk-cli tickets customfields set 1 --field 202 --rule 1 --item-team     "Suporte"
+
+# Clear one specific line, or every line of a field.
+movidesk-cli tickets customfields clear 1 --field-label "Severidade" --line 1
+movidesk-cli tickets customfields clear 1 --field-label "Severidade"
+```
+
+**Field type → flag mapping**
+
+| Movidesk field type | CLI flag |
+|---|---|
+| `text`, `multiline-text`, `html`, `regex`, `email`, `phone`, `url`, `number`, `date`, `time`, `datetime` | `--value "x"` |
+| `list-of-values`, `single-select`, `multi-select` | `--item "x"` (repeatable) |
+| `list-of-persons` | `--item-person <personId>` |
+| `list-of-clients` | `--item-client <clientId>` |
+| `list-of-agents` | `--item-team <name>` |
+
+**Format conventions enforced by Movidesk**
+
+- Datetime: `YYYY-MM-DDThh:MM:ss.000Z` (UTC).
+- Time only: prepend the fixed date `1991-01-01`.
+- Numeric: Brazilian format with comma decimals, e.g. `"1.530,75"`.
+
+> ℹ️ The `/ticketCustomFieldValue/{InsertValues|UpdateValues|DeleteValues}`
+> endpoints manage the **option pool** of list-type fields (the dropdown
+> values themselves), not values on tickets. Those land in a future
+> `customfields options` subcommand — see the plan.
 
 ## Output formats
 

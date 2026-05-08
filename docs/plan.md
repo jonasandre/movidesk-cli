@@ -141,24 +141,215 @@ Padrão geral: `movidesk-cli <recurso> <ação> [flags]`. Flags comuns: `--filte
 
 ## Roadmap por fases
 
-**Fase 0 — Foundation (1-2 semanas)**
-1. `go mod init github.com/jonasandre/movidesk-cli`
-2. Esqueleto Cobra+Viper, comando root `movidesk-cli`, `--version`.
-3. `internal/config` lendo/escrevendo YAML.
-4. `internal/auth` com keychain + fallback.
-5. Comandos `auth login/switch/list/status/logout/token`.
-6. `internal/movidesk/client.go` HTTP base + injeção de token + rate limiter + retry.
-7. `internal/output` com 3 formatters + flag global `--output`.
-8. Testes unitários (config, auth mock, ratelimit, formatters) + httptest pra client.
-9. CI GitHub Actions: lint + test em PR. Codecov opcional.
-10. GoReleaser config + tag v0.1.0 trigger build (sem release público ainda).
+**Fase 0 — Foundation ✅ ENTREGUE**
+1. `go mod init github.com/jonasandre/movidesk-cli` ✅
+2. Esqueleto Cobra+Viper, comando root `movidesk-cli`, `--version`. ✅
+3. `internal/config` lendo/escrevendo YAML. ✅
+4. `internal/auth` com keychain + fallback AES-GCM/PBKDF2. ✅
+5. Comandos `auth login/switch/list/status/logout/token`. ✅
+6. `internal/movidesk/client.go` HTTP base + injeção de token + rate limiter + retry. ✅
+7. `internal/output` com 3 formatters (json/table/csv) + flag global `--output`. ✅
+8. Testes unitários + httptest pra client. ✅
+9. CI GitHub Actions: lint + test + build em PR. ✅
+10. GoReleaser config (darwin/linux/windows × amd64/arm64) + Homebrew tap. ✅
 
-**Fase 1 — Tickets completo (1-2 semanas)**
-- `tickets list/get/create/update/html/past/merged/attach`
-- Auto-paginação (`--all`)
-- Template engine pra create
-- Tabela default columns: `id, subject, status, owner.businessName, lastUpdate`
-- Doc + exemplos no README
+**Fase 1 — Tickets ✅ ENTREGUE**
+- `tickets list/get/create/update/html/past/merged/attach` ✅
+- Auto-paginação (`--all` + `--max`) ✅
+- Template engine (`--from-template`, `--from-template-file`, `--set k=v`) ✅
+- Tabela default columns por recurso (`internal/output/columns.go`) ✅
+- 12 E2E tests via httptest ✅
+- README docs com exemplos por verbo ✅
+
+**Fase 1.5 — Schema completion + ticket collections (3 dias) — PRÓXIMA**
+
+Motivação: o struct `Ticket` em `internal/movidesk/tickets/tickets.go` cobre ~22 dos ~80 campos do schema Movidesk. Saída via `--output json` preserva tudo (round-trip-safe), mas o SDK Go é incompleto e há gaps de ergonomia + um bug no `--all + table/csv`.
+
+**1.5.A — Bug fix: paginate + table/csv (1h)**
+- `internal/output/path.go:70` `asRows()` não trata `[]json.RawMessage`. Hoje `tickets list --all --output table` imprime "(no rows)".
+- Adicionar case `[]json.RawMessage` que decodifica cada item em `map[string]any`.
+- Teste de regressão em `internal/output/output_test.go` cobrindo o caso.
+- Teste E2E em `internal/cli/tickets_e2e_test.go` rodando `tickets list --all --output table` e validando linhas.
+
+**1.5.B — Schema completo no SDK (1-1.5 dias)**
+
+Expandir `internal/movidesk/tickets/tickets.go` com 100% dos campos doc'd. Novo arquivo `tickets_types.go` pra organizar nested:
+
+| Tipo Go | JSON | Notas |
+|---|---|---|
+| `Ticket` (existente, expandir) | — | adiciona: `serviceFull`, `serviceFirstLevelId`, `serviceSecondLevel`, `serviceThirdLevel`, `contactForm`, `cc`, `reopenedIn`, `lifetimeWorkingTime`, `stoppedTime`, `stoppedTimeWorkingTime`, `resolvedInFirstCall`, `chatWidget`, `chatGroup`, `chatTalkTime`, `chatWaitingTime`, `sequence`, `slaAgreement`, `slaAgreementRule`, `slaSolutionTime`, `slaResponseTime`, `slaSolutionChangedByUser`, `slaSolutionChangedBy`, `slaSolutionDate`, `slaSolutionDateIsPaused`, `slaResponseDate`, `slaRealResponseDate`, `jiraIssueKey`, `redmineIssueId`, `clients`, `actions`, `parentTickets`, `childrenTickets`, `ownerHistories`, `statusHistories`, `customFieldValues`, `assets` |
+| `Client` | `ticket.clients[n]` | id, businessName, email, phone, personType, profileType, isDeleted, organization (Person) |
+| `Action` | `ticket.actions[n]` | id, type, origin, description, htmlDescription, status, justification, createdDate, createdBy (Person), isDeleted, timeAppointments[], expenses[], attachments[], tags[] |
+| `Attachment` | `action.attachments[n]` | fileName, path, createdDate, createdBy, isDeleted |
+| `TimeAppointment` | `action.timeAppointments[n]` | id, activity, date, periodStart, periodEnd, workTime, workTypeName, accountable (Person), isDeleted |
+| `Expense` | `action.expenses[n]` | id, type, value, serviceReport, createdBy, createdDate, isDeleted |
+| `ParentChild` | `parentTickets[n]` / `childrenTickets[n]` | id, isDeleted |
+| `OwnerHistory` | `ownerHistories[n]` | ownerTeam, owner (Person), changedBy, changedDate, permanencyTime, permanencyTimeFullTime, permanencyTimeWorkingTime |
+| `StatusHistory` | `statusHistories[n]` | status, justification, changedBy (Person), changedDate, permanencyTime |
+| `CustomFieldValue` | `ticket.customFieldValues[n]` | customFieldId, customFieldRuleId, line, column, value, items[] (objetos com id/personId/clientId/team/customFieldItem) |
+| `Asset` | `ticket.assets[n]` | id, name, label |
+| `Person` (existente, expandir) | — | manter campos atuais; adicionar lookup helpers se útil |
+
+**Round-trip preservation:** manter `Extra json.RawMessage` em `Ticket`, `Action`, `CustomFieldValue` pra não quebrar rotas onde Movidesk adicione campos sem aviso. Decoder injeta `Extra` no UnmarshalJSON custom (não na struct tag), pra serialização `MarshalJSON` round-trip via `Extra` quando presente.
+
+Testes: `tickets_types_test.go` com fixture JSON realista (sample completo do doc) cobrindo unmarshal → marshal → unmarshal idempotente.
+
+**1.5.C — Subcomandos de coleção (1.5 dias)**
+
+Implementar em `internal/cli/tickets_collections.go` + helpers no SDK.
+
+> ⚠️ **Trap do PATCH `/tickets`:** o doc é explícito (em `customFieldValues`) — *"Os campos que estiverem na base de dados e não forem enviados no corpo da requisição serão excluídos."* Para `customFieldValues` (e potencialmente outras arrays), todo write precisa ler o ticket, mergear com a mudança e enviar a lista completa. O SDK encapsula isso como **read-merge-patch** — comandos de write nunca expõem essa armadilha.
+
+**Coleções de leitura:**
+
+| Comando | Mecanismo | Output default |
+|---|---|---|
+| `tickets actions list <id>` | `GET /tickets?id=<id>&$expand=actions` → extrai `actions[]` | table cols `id, type, origin, createdDate, createdBy.businessName, isDeleted` |
+| `tickets actions get <id> --action-id N` | mesmo + filtro local | JSON da `Action` completa |
+| `tickets actions html <id> --action-id N` | reusa `tickets html <id> --action-id N` (já existe) | description HTML |
+| `tickets clients list <id>` | `$expand=clients` → extrai | table cols `id, businessName, email, personType, profileType, isDeleted` |
+| `tickets relations <id>` | `$expand=parentTickets,childrenTickets` | duas seções: "Parents:" e "Children:", table |
+| `tickets timeline <id>` | merge ordenado por data: `actions[].createdDate` + `statusHistories[].changedDate` + `ownerHistories[].changedDate` | table cols `when, kind, actor, summary` |
+| `tickets assets list <id>` | `$expand=assets` → extrai | table cols `id, name, label, categoryFirstLevel` |
+| `tickets histories list <id>` | `$expand=ownerHistories,statusHistories` | table com seções "Owner:" e "Status:" |
+
+**Coleções de escrita (actions):**
+
+| Comando | Body | Notas |
+|---|---|---|
+| `tickets actions add <id>` | PATCH com `{actions:[{type, description, ...}]}` (sem id) | flags: `--type 1\|2`, `--description "text"`, `--description-file path.html`, `--public` (alias `--type 2`), `--internal` (alias `--type 1`), `--tag` (repeatable). Action recém-criada: ler ticket → append → PATCH. |
+| `tickets actions update <id> --action-id N` | PATCH com `{actions:[{id:N, ...}]}` | mantém demais ações intactas; só envia a alterada |
+| `tickets actions delete <id> --action-id N` | PATCH com `{actions:[{id:N, isDeleted:true}]}` | Movidesk usa soft-delete por flag |
+| `tickets actions attach <id> --action-id N --file path` | reusa `tickets attach` (já existe) | sem código novo; só apelido |
+
+`internal/output/columns.go` ganha:
+```go
+"tickets.actions":     {"id", "type", "origin", "createdDate", "createdBy.businessName", "isDeleted"},
+"tickets.clients":     {"id", "businessName", "email", "personType", "profileType", "isDeleted"},
+"tickets.relations":   {"id", "isDeleted"},
+"tickets.timeline":    {"when", "kind", "actor", "summary"},
+"tickets.assets":      {"id", "name", "label", "categoryFirstLevel"},
+"tickets.histories":   {"changedDate", "kind", "actor", "from", "to", "permanencyTime"},
+"tickets.customfields":{"customFieldId", "customFieldRuleId", "line", "value", "items"},
+```
+
+**1.5.C.bis — Custom fields (write é o caso mais delicado)**
+
+Schema em `ticket.customFieldValues[n]` (do doc):
+
+| Campo | Tipo | Quando usar |
+|---|---|---|
+| `customFieldId` (int, **req**) | id numérico do campo | sempre — obtido na UI Movidesk (Painel → Campos adicionais) |
+| `customFieldRuleId` (int, **req**) | id da regra de exibição | sempre — obtido na UI Movidesk |
+| `line` (int, **req**) | número da linha | `1` quando regra não permite múltiplas linhas; `>1` para grids |
+| `value` (string) | valor texto | tipos: texto-uma-linha, texto-multilinha, HTML, regex, numérico, data, hora, datetime, email, telefone, URL |
+| `items[]` (array) | lista de itens | tipos: lista-de-valores, lista-de-pessoas, lista-de-clientes, lista-de-agentes, seleção-múltipla, seleção-única |
+
+Cada `items[n]`:
+
+| Sub-campo | Quando |
+|---|---|
+| `customFieldItem` (string) | lista-de-valores, seleção-única, seleção-múltipla |
+| `personId` (string) | lista-de-pessoas |
+| `clientId` (string) | lista-de-clientes |
+| `team` (string) | lista-de-agentes (equipes) |
+
+**Formatação especial:**
+- Datas: `YYYY-MM-DDThh:MM:ss.000Z` em UTC.
+- Hora-only: prefixar data fixa `1991-01-01`.
+- Numérico: formato brasileiro com vírgula decimal, ex: `"1.530,75"`.
+
+**Obstáculo de discovery:** a Movidesk **não tem API pública** que liste definições de campos adicionais (id, label, tipo, regra, options). Só dá pra ver na UI web. Para mitigar:
+
+→ **Catálogo local** em `~/.movidesk/<tenant>/customfields.yaml`, gerenciado por comando, mapeando label → ids:
+
+```yaml
+fields:
+  Severidade:
+    id: 125529
+    rule_id: 1
+    type: list-of-values        # text|number|date|time|datetime|email|phone|url|html|regex
+                                # | list-of-values | list-of-persons | list-of-clients
+                                # | list-of-agents | single-select | multi-select
+    options: [Baixa, Média, Alta, Crítica]
+  Data de Implantação:
+    id: 125530
+    rule_id: 2
+    type: date
+```
+
+Após cadastrar, o usuário usa `--field-label` em vez de `--field id`.
+
+**Comandos de custom fields:**
+
+| Comando | Mecanismo | Notas |
+|---|---|---|
+| `tickets customfields show <id>` | `GET /tickets?id=<id>&$expand=customFieldValues` | render como tabela. Se catálogo presente, resolve `customFieldId → label` na coluna |
+| `tickets customfields set <id>` (write) | **read-merge-patch**: GET ticket com `$expand=customFieldValues`, mescla nova entrada (mesma `customFieldId+ruleId+line`), PATCH com lista completa | flags: `--field N` ou `--field-label "X"` (resolve via catálogo); `--rule N` (default catálogo); `--line N` (default 1); `--value "x"` ou `--item "x"` (repeatable) ou `--item-person ID` ou `--item-client ID` ou `--item-team NAME` (repeatable). Se catálogo conhece tipo, valida que flags batem |
+| `tickets customfields clear <id> --field N [--rule N --line N]` | **read-merge-patch**: GET, omite a entrada da lista, PATCH | sem `--line` remove todas as linhas daquele field |
+| `tickets customfields catalog list` | `~/.movidesk/<tenant>/customfields.yaml` | local-only |
+| `tickets customfields catalog add --label X --field N --rule N --type T [--options "a,b"]` | edita YAML | local-only |
+| `tickets customfields catalog remove --label X` | edita YAML | local-only |
+| `tickets customfields catalog import --file path.yaml` | merge externo | útil pra distribuir catálogo padronizado em equipe |
+
+> ℹ️ Movidesk tem outro endpoint, `/ticketCustomFieldValue/{InsertValues\|UpdateValues\|DeleteValues}`, que **só** gerencia opções (pool de valores) de campos do tipo lista. Não confundir com setar valor em ticket. Vai pro `customfields options` na **Fase 3** (`api de manutenção e manipulação de campos adicionais`):
+> ```
+> customfields options add --field N --values "Opção A,Opção B"
+> customfields options rename --field N --from "X" --to "Y"
+> customfields options remove --field N --values "Opção C"
+> ```
+
+**Helpers no SDK** (`internal/movidesk/tickets/customfields.go`):
+```go
+func (s *Service) ReadMergePatchCustomField(ctx, ticketID, change CustomFieldValue) ([]byte, error)
+func (s *Service) ReadMergePatchClearCustomField(ctx, ticketID, fieldID, ruleID, line int) ([]byte, error)
+```
+Ambos garantem semântica correta sem expor o trap. Comando `--no-merge` opt-in pra emergências.
+
+`Options.Resource` adicionar: `tickets.actions`, `tickets.clients`, `tickets.timeline`, `tickets.assets`, `tickets.histories`, `tickets.customfields`, `tickets.relations`.
+
+**1.5.D — Default columns enriquecidos (30min)**
+
+Ampliar `defaultColumns` em `internal/output/columns.go`:
+```go
+"tickets": {"id", "protocol", "subject", "status", "urgency", "owner.businessName", "ownerTeam", "slaSolutionDate", "lastUpdate"},
+"tickets.actions":      {"id", "type", "origin", "createdDate", "createdBy.businessName"},
+"tickets.clients":      {"id", "businessName", "email", "personType"},
+"tickets.timeline":     {"when", "kind", "actor", "summary"},
+"tickets.customfields": {"customFieldId", "line", "column", "value"},
+"tickets.past":         {"id", "subject", "status", "createdDate", "lastUpdate"},
+```
+
+**1.5.E — Doc + smoke (1h)**
+
+- README: nova seção "Tickets — coleções" com exemplos `tickets actions list/add/update/delete`, `tickets clients list`, `tickets relations`, `tickets timeline`, `tickets histories list`, `tickets assets list`.
+- README: seção "Custom fields" cobrindo:
+  - Trap do PATCH (read-merge-patch automático).
+  - Como popular `~/.movidesk/<tenant>/customfields.yaml` via `catalog add`.
+  - Tabela de tipos (lista-de-valores ↔ `--item`, lista-de-pessoas ↔ `--item-person`, etc.).
+  - Convenções de formato (UTC, Brazilian numeric).
+- CONTRIBUTING: nota sobre nunca PATCH cru em `customFieldValues` (sempre via helper read-merge-patch).
+- E2E test cada subcomando contra httptest mock incluindo cenário read-merge-patch.
+
+**Verificação 1.5 — comandos novos:**
+```bash
+make test                                                             # tudo verde, race
+./bin/movidesk-cli tickets list --all --output table                  # bug fix valida (sem "(no rows)")
+./bin/movidesk-cli tickets list --output table                        # cols enriquecidas: protocol, urgency, ownerTeam, slaSolutionDate
+./bin/movidesk-cli tickets actions list 1
+./bin/movidesk-cli tickets actions add 1 --type 1 --description "Internal note"
+./bin/movidesk-cli tickets actions update 1 --action-id 5 --description "Edited"
+./bin/movidesk-cli tickets actions delete 1 --action-id 5
+./bin/movidesk-cli tickets clients list 1
+./bin/movidesk-cli tickets relations 1
+./bin/movidesk-cli tickets timeline 1 --output table
+./bin/movidesk-cli tickets histories list 1
+./bin/movidesk-cli tickets assets list 1
+./bin/movidesk-cli tickets customfields catalog add --label "Severidade" --field 125529 --rule 1 --type list-of-values --options "Baixa,Média,Alta,Crítica"
+./bin/movidesk-cli tickets customfields show 1
+./bin/movidesk-cli tickets customfields set 1 --field-label "Severidade" --item "Alta"
+./bin/movidesk-cli tickets customfields clear 1 --field-label "Severidade"
+```
 
 **Fase 2 — Pessoas + Serviços (1 semana)**
 - `persons` CRUD completo + delete
@@ -283,4 +474,18 @@ goreleaser release --snapshot --clean   # valida config sem publicar
 
 ## Próximo passo após aprovação
 
-Iniciar Fase 0 criando estrutura de diretórios, `go mod init`, e esqueleto Cobra. Estimativa total para v1.0 (cobertura completa): **6-9 semanas** em ritmo de meio período.
+Fases 0 e 1 entregues. **Próximo:** executar Fase 1.5 (schema completion + collections de tickets) — ordem A → B → C → D → E. Depois seguir Fase 2 (Persons/Services).
+
+Estimativa restante para v1.0: **5-7 semanas** em ritmo de meio período.
+
+## Apêndice — gap analysis dos tickets (ago/2026)
+
+Estado atual de `internal/movidesk/tickets/tickets.go` (entregue na Fase 1):
+
+- ✅ Round-trip safe via `--output json`: o CLI faz `json.Unmarshal` em `any` e re-emite, então usuário não perde dados na linha de comando.
+- ⚠️ Struct `Ticket` cobre ~22 de ~80 campos. Quem usa o pacote `tickets` como lib Go perde tipagem em: cluster SLA (10 campos), coleções (`clients`, `actions`, `parentTickets`, `childrenTickets`, `ownerHistories`, `statusHistories`, `customFieldValues`, `assets`), serviços encadeados (`serviceFull`, `serviceSecondLevel`, `serviceThirdLevel`, `serviceFirstLevelId`), cluster chat (5 campos), working time (3 campos), `jiraIssueKey`/`redmineIssueId`, `cc`, `reopenedIn`, `sequence`.
+- 🐛 `internal/output/path.go:70` `asRows()` não trata `[]json.RawMessage` (retorno de `Paginate()`). `tickets list --all --output table` imprime "(no rows)" silenciosamente.
+- ❌ Sem subcomandos de coleção (`tickets actions list <id>`, `tickets clients list <id>`, `tickets customfields show/set <id>`, `tickets relations <id>`, `tickets timeline <id>`).
+- ❌ `defaultColumns["tickets"]` rasos (5 colunas); não inclui urgency, ownerTeam, slaSolutionDate, baseStatus, protocol.
+
+Fase 1.5 fecha esses pontos.

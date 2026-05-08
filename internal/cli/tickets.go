@@ -76,6 +76,13 @@ via --set key=value.`,
 		newTicketsPastCmd(),
 		newTicketsMergedCmd(),
 		newTicketsAttachCmd(),
+		newTicketsActionsCmd(),
+		newTicketsClientsCmd(),
+		newTicketsRelationsCmd(),
+		newTicketsTimelineCmd(),
+		newTicketsAssetsCmd(),
+		newTicketsHistoriesCmd(),
+		newTicketsCustomFieldsCmd(),
 	)
 	return cmd
 }

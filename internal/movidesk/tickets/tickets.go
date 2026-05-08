@@ -24,38 +24,129 @@ const (
 	pathHTML    = "/tickets/htmldescription"
 )
 
-type Person struct {
-	ID           string `json:"id,omitempty"`
-	BusinessName string `json:"businessName,omitempty"`
-	Email        string `json:"email,omitempty"`
-	PersonType   int    `json:"personType,omitempty"`
-	ProfileType  int    `json:"profileType,omitempty"`
+// Ticket models a /tickets resource. Field-level docs follow the public
+// Movidesk schema; see types.go for nested types.
+//
+// Round-trip: when Ticket is decoded with UnmarshalJSON it captures the
+// original payload in Extra so unknown fields survive a re-marshal.
+type Ticket struct {
+	// Identity
+	ID                 int    `json:"id,omitempty"`
+	Protocol           string `json:"protocol,omitempty"`
+	Type               int    `json:"type,omitempty"`
+	Subject            string `json:"subject,omitempty"`
+	Category           string `json:"category,omitempty"`
+	Urgency            string `json:"urgency,omitempty"`
+	Status             string `json:"status,omitempty"`
+	BaseStatus         string `json:"baseStatus,omitempty"`
+	Justification      string `json:"justification,omitempty"`
+	Origin             int    `json:"origin,omitempty"`
+	CreatedDate        string `json:"createdDate,omitempty"`
+	OriginEmailAccount string `json:"originEmailAccount,omitempty"`
+	Sequence           int    `json:"sequence,omitempty"`
+	CC                 string `json:"cc,omitempty"`
+	ContactForm        string `json:"contactForm,omitempty"`
+
+	// Ownership
+	Owner     *Person `json:"owner,omitempty"`
+	OwnerTeam string  `json:"ownerTeam,omitempty"`
+	CreatedBy *Person `json:"createdBy,omitempty"`
+
+	// Service catalog
+	ServiceFull         []string `json:"serviceFull,omitempty"`
+	ServiceFirstLevelID int      `json:"serviceFirstLevelId,omitempty"`
+	ServiceFirstLevel   string   `json:"serviceFirstLevel,omitempty"`
+	ServiceSecondLevel  string   `json:"serviceSecondLevel,omitempty"`
+	ServiceThirdLevel   string   `json:"serviceThirdLevel,omitempty"`
+
+	// Tagging
+	Tags []string `json:"tags,omitempty"`
+
+	// Lifecycle dates
+	ResolvedIn     string `json:"resolvedIn,omitempty"`
+	ReopenedIn     string `json:"reopenedIn,omitempty"`
+	ClosedIn       string `json:"closedIn,omitempty"`
+	LastActionDate string `json:"lastActionDate,omitempty"`
+	LastUpdate     string `json:"lastUpdate,omitempty"`
+	ActionCount    int    `json:"actionCount,omitempty"`
+
+	// Working time
+	LifetimeWorkingTime    int `json:"lifetimeWorkingTime,omitempty"`
+	StoppedTime            int `json:"stoppedTime,omitempty"`
+	StoppedTimeWorkingTime int `json:"stoppedTimeWorkingTime,omitempty"`
+
+	// Chat
+	ResolvedInFirstCall bool   `json:"resolvedInFirstCall,omitempty"`
+	ChatWidget          string `json:"chatWidget,omitempty"`
+	ChatGroup           string `json:"chatGroup,omitempty"`
+	ChatTalkTime        int    `json:"chatTalkTime,omitempty"`
+	ChatWaitingTime     int    `json:"chatWaitingTime,omitempty"`
+
+	// SLA
+	SLAAgreement             string  `json:"slaAgreement,omitempty"`
+	SLAAgreementRule         string  `json:"slaAgreementRule,omitempty"`
+	SLASolutionTime          int     `json:"slaSolutionTime,omitempty"`
+	SLAResponseTime          int     `json:"slaResponseTime,omitempty"`
+	SLASolutionChangedByUser bool    `json:"slaSolutionChangedByUser,omitempty"`
+	SLASolutionChangedBy     *Person `json:"slaSolutionChangedBy,omitempty"`
+	SLASolutionDate          string  `json:"slaSolutionDate,omitempty"`
+	SLASolutionDateIsPaused  bool    `json:"slaSolutionDateIsPaused,omitempty"`
+	SLAResponseDate          string  `json:"slaResponseDate,omitempty"`
+	SLARealResponseDate      string  `json:"slaRealResponseDate,omitempty"`
+
+	// External integrations
+	JiraIssueKey   string `json:"jiraIssueKey,omitempty"`
+	RedmineIssueID int    `json:"redmineIssueId,omitempty"`
+
+	// Collections (only populated with $expand)
+	Clients           []Client           `json:"clients,omitempty"`
+	Actions           []Action           `json:"actions,omitempty"`
+	ParentTickets     []ParentChild      `json:"parentTickets,omitempty"`
+	ChildrenTickets   []ParentChild      `json:"childrenTickets,omitempty"`
+	OwnerHistories    []OwnerHistory     `json:"ownerHistories,omitempty"`
+	StatusHistories   []StatusHistory    `json:"statusHistories,omitempty"`
+	CustomFieldValues []CustomFieldValue `json:"customFieldValues,omitempty"`
+	Assets            []Asset            `json:"assets,omitempty"`
+
+	// Extra preserves the raw payload for round-trip safety.
+	Extra json.RawMessage `json:"-"`
 }
 
-type Ticket struct {
-	ID                int             `json:"id,omitempty"`
-	Protocol          string          `json:"protocol,omitempty"`
-	Type              int             `json:"type,omitempty"`
-	Subject           string          `json:"subject,omitempty"`
-	Category          string          `json:"category,omitempty"`
-	Urgency           string          `json:"urgency,omitempty"`
-	Status            string          `json:"status,omitempty"`
-	BaseStatus        string          `json:"baseStatus,omitempty"`
-	Justification     string          `json:"justification,omitempty"`
-	Origin            int             `json:"origin,omitempty"`
-	CreatedDate       string          `json:"createdDate,omitempty"`
-	OriginEmailAcc    string          `json:"originEmailAccount,omitempty"`
-	Owner             *Person         `json:"owner,omitempty"`
-	OwnerTeam         string          `json:"ownerTeam,omitempty"`
-	CreatedBy         *Person         `json:"createdBy,omitempty"`
-	ServiceFirstLevel string          `json:"serviceFirstLevel,omitempty"`
-	Tags              []string        `json:"tags,omitempty"`
-	ResolvedIn        string          `json:"resolvedIn,omitempty"`
-	ClosedIn          string          `json:"closedIn,omitempty"`
-	LastActionDate    string          `json:"lastActionDate,omitempty"`
-	LastUpdate        string          `json:"lastUpdate,omitempty"`
-	ActionCount       int             `json:"actionCount,omitempty"`
-	Extra             json.RawMessage `json:"-"`
+// UnmarshalJSON populates Ticket and stores the source bytes in Extra so
+// re-marshaling preserves any field Movidesk adds after this build was cut.
+func (t *Ticket) UnmarshalJSON(data []byte) error {
+	type alias Ticket
+	var a alias
+	if err := json.Unmarshal(data, &a); err != nil {
+		return err
+	}
+	*t = Ticket(a)
+	t.Extra = append(json.RawMessage(nil), data...)
+	return nil
+}
+
+// UnmarshalJSON populates Action and stores raw bytes in Extra.
+func (a *Action) UnmarshalJSON(data []byte) error {
+	type alias Action
+	var x alias
+	if err := json.Unmarshal(data, &x); err != nil {
+		return err
+	}
+	*a = Action(x)
+	a.Extra = append(json.RawMessage(nil), data...)
+	return nil
+}
+
+// UnmarshalJSON populates CustomFieldValue and stores raw bytes in Extra.
+func (c *CustomFieldValue) UnmarshalJSON(data []byte) error {
+	type alias CustomFieldValue
+	var x alias
+	if err := json.Unmarshal(data, &x); err != nil {
+		return err
+	}
+	*c = CustomFieldValue(x)
+	c.Extra = append(json.RawMessage(nil), data...)
+	return nil
 }
 
 // HTMLBody is returned by /tickets/htmldescription.

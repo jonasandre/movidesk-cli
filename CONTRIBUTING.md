@@ -36,6 +36,16 @@ Requirements:
   hint for the table formatter.
 - Never log a full URL containing a token. Use the `redact()` helper.
 
+### PATCH semantics on `/tickets`
+
+Movidesk's `PATCH /tickets` is partial for top-level scalar fields but
+**replaces** array-valued fields like `customFieldValues`: any entry omitted
+from the body is deleted server-side. **Never** issue a raw PATCH that touches
+those arrays. Always go through the read-merge-patch helpers in
+`internal/movidesk/tickets/customfields.go` (or analogous helpers for other
+arrays). Tests in `customfields_test.go` cover the merge path; extend them
+when adding new array-valued operations.
+
 ## Testing against a real Movidesk tenant
 
 Integration tests are opt-in. Export `MOVIDESK_TOKEN` and

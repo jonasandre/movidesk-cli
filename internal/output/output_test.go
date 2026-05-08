@@ -98,6 +98,52 @@ func TestStringify(t *testing.T) {
 	assert.Equal(t, "a,b", stringify([]any{"a", "b"}))
 }
 
+func TestAsRows_RawMessageSlice(t *testing.T) {
+	rm := []json.RawMessage{
+		json.RawMessage(`{"id":1,"subject":"a"}`),
+		json.RawMessage(`{"id":2,"subject":"b"}`),
+	}
+	rows := asRows(rm)
+	require.Len(t, rows, 2)
+	assert.Equal(t, float64(1), rows[0]["id"])
+	assert.Equal(t, "b", rows[1]["subject"])
+}
+
+func TestAsRows_SingleRawMessage(t *testing.T) {
+	rm := json.RawMessage(`{"id":7}`)
+	rows := asRows(rm)
+	require.Len(t, rows, 1)
+	assert.Equal(t, float64(7), rows[0]["id"])
+}
+
+func TestTable_HandlesRawMessageSlice(t *testing.T) {
+	rm := []json.RawMessage{
+		json.RawMessage(`{"id":1,"subject":"alpha"}`),
+		json.RawMessage(`{"id":2,"subject":"beta"}`),
+	}
+	var buf bytes.Buffer
+	err := Render(&buf, FormatTable, rm, Options{})
+	require.NoError(t, err)
+	out := strings.ToLower(buf.String())
+	assert.Contains(t, out, "alpha")
+	assert.Contains(t, out, "beta")
+	assert.NotContains(t, out, "no rows")
+}
+
+func TestCSV_HandlesRawMessageSlice(t *testing.T) {
+	rm := []json.RawMessage{
+		json.RawMessage(`{"id":1,"subject":"alpha"}`),
+		json.RawMessage(`{"id":2,"subject":"beta"}`),
+	}
+	var buf bytes.Buffer
+	err := Render(&buf, FormatCSV, rm, Options{Columns: []string{"id", "subject"}})
+	require.NoError(t, err)
+	lines := strings.Split(strings.TrimSpace(buf.String()), "\n")
+	require.Len(t, lines, 3)
+	assert.Equal(t, "id,subject", lines[0])
+	assert.Equal(t, "1,alpha", lines[1])
+}
+
 func TestDig(t *testing.T) {
 	v := map[string]any{"a": map[string]any{"b": "c"}}
 	assert.Equal(t, "c", dig(v, "a.b"))

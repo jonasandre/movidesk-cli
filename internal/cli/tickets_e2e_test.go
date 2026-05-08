@@ -85,6 +85,29 @@ func TestE2E_TicketsList_TableUsesDefaultColumns(t *testing.T) {
 	assert.Contains(t, low, "joe")
 }
 
+func TestE2E_TicketsList_AllPaginates_TableOutput(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Query().Get("$skip") {
+		case "", "0":
+			w.Write([]byte(`[{"id":1,"subject":"first"},{"id":2,"subject":"second"}]`))
+		case "2":
+			w.Write([]byte(`[{"id":3,"subject":"third"}]`))
+		default:
+			w.Write([]byte(`[]`))
+		}
+	}))
+	defer srv.Close()
+	setupTenant(t, srv.URL)
+
+	out, _, err := runCmd(t, "tickets", "list", "--all", "--top", "2", "--output", "table")
+	require.NoError(t, err)
+	low := strings.ToLower(out)
+	assert.NotContains(t, low, "no rows")
+	assert.Contains(t, low, "first")
+	assert.Contains(t, low, "second")
+	assert.Contains(t, low, "third")
+}
+
 func TestE2E_TicketsList_AllPaginates(t *testing.T) {
 	calls := 0
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
