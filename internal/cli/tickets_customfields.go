@@ -76,12 +76,12 @@ func newTicketsCFShowCmd() *cobra.Command {
 
 func newTicketsCFSetCmd() *cobra.Command {
 	var (
-		fieldID    int
-		fieldLabel string
-		ruleID     int
-		line       int
-		value      string
-		items      []string
+		fieldID     int
+		fieldLabel  string
+		ruleID      int
+		line        int
+		value       string
+		items       []string
 		itemPersons []string
 		itemClients []string
 		itemTeams   []string

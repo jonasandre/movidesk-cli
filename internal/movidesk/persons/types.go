@@ -44,14 +44,14 @@ type RelationshipService struct {
 
 // Relationship is a person.relationships[n] entry.
 type Relationship struct {
-	ID                                string                `json:"id,omitempty"`
-	Name                              string                `json:"name,omitempty"`
-	SLAAgreement                      string                `json:"slaAgreement,omitempty"`
-	ForceChildrenToHaveSomeAgreement  bool                  `json:"forceChildrenToHaveSomeAgreement,omitempty"`
-	AllowAllServices                  bool                  `json:"allowAllServices,omitempty"`
-	IncludeInParents                  bool                  `json:"includeInParents,omitempty"`
-	LoadChildOrganizations            bool                  `json:"loadChildOrganizations,omitempty"`
-	Services                          []RelationshipService `json:"services,omitempty"`
+	ID                               string                `json:"id,omitempty"`
+	Name                             string                `json:"name,omitempty"`
+	SLAAgreement                     string                `json:"slaAgreement,omitempty"`
+	ForceChildrenToHaveSomeAgreement bool                  `json:"forceChildrenToHaveSomeAgreement,omitempty"`
+	AllowAllServices                 bool                  `json:"allowAllServices,omitempty"`
+	IncludeInParents                 bool                  `json:"includeInParents,omitempty"`
+	LoadChildOrganizations           bool                  `json:"loadChildOrganizations,omitempty"`
+	Services                         []RelationshipService `json:"services,omitempty"`
 }
 
 // CustomFieldItem mirrors the ticket-side type. The shape is identical
@@ -83,37 +83,37 @@ type Asset struct {
 
 // Person models /persons.
 type Person struct {
-	ID                       string         `json:"id,omitempty"`
-	CodeReferenceAdditional  string         `json:"codeReferenceAdditional,omitempty"`
-	IsActive                 bool           `json:"isActive"`
-	PersonType               int            `json:"personType,omitempty"`
-	ProfileType              int            `json:"profileType,omitempty"`
-	AccessProfile            string         `json:"accessProfile,omitempty"`
-	CorporateName            string         `json:"corporateName,omitempty"`
-	BusinessName             string         `json:"businessName,omitempty"`
-	BusinessBranch           string         `json:"businessBranch,omitempty"`
-	CPFCNPJ                  string         `json:"cpfCnpj,omitempty"`
-	UserName                 string         `json:"userName,omitempty"`
-	Password                 string         `json:"password,omitempty"`
-	Role                     string         `json:"role,omitempty"`
-	BossID                   string         `json:"bossId,omitempty"`
-	BossName                 string         `json:"bossName,omitempty"`
-	Classification           string         `json:"classification,omitempty"`
-	CultureID                string         `json:"cultureId,omitempty"`
-	TimeZoneID               string         `json:"timeZoneId,omitempty"`
-	AuthenticateOn           string         `json:"authenticateOn,omitempty"`
-	CreatedDate              string         `json:"createdDate,omitempty"`
-	CreatedBy                string         `json:"createdBy,omitempty"`
-	ChangedDate              string         `json:"changedDate,omitempty"`
-	ChangedBy                string         `json:"changedBy,omitempty"`
-	Observations             string         `json:"observations,omitempty"`
-	Addresses                []Address      `json:"addresses,omitempty"`
-	Contacts                 []Contact      `json:"contacts,omitempty"`
-	Emails                   []Email        `json:"emails,omitempty"`
-	Teams                    []string       `json:"teams,omitempty"`
-	Relationships            []Relationship `json:"relationships,omitempty"`
-	CustomFieldValues        []CustomFieldValue `json:"customFieldValues,omitempty"`
-	AtAssets                 []Asset        `json:"atAssets,omitempty"`
+	ID                      string             `json:"id,omitempty"`
+	CodeReferenceAdditional string             `json:"codeReferenceAdditional,omitempty"`
+	IsActive                bool               `json:"isActive"`
+	PersonType              int                `json:"personType,omitempty"`
+	ProfileType             int                `json:"profileType,omitempty"`
+	AccessProfile           string             `json:"accessProfile,omitempty"`
+	CorporateName           string             `json:"corporateName,omitempty"`
+	BusinessName            string             `json:"businessName,omitempty"`
+	BusinessBranch          string             `json:"businessBranch,omitempty"`
+	CPFCNPJ                 string             `json:"cpfCnpj,omitempty"`
+	UserName                string             `json:"userName,omitempty"`
+	Password                string             `json:"password,omitempty"`
+	Role                    string             `json:"role,omitempty"`
+	BossID                  string             `json:"bossId,omitempty"`
+	BossName                string             `json:"bossName,omitempty"`
+	Classification          string             `json:"classification,omitempty"`
+	CultureID               string             `json:"cultureId,omitempty"`
+	TimeZoneID              string             `json:"timeZoneId,omitempty"`
+	AuthenticateOn          string             `json:"authenticateOn,omitempty"`
+	CreatedDate             string             `json:"createdDate,omitempty"`
+	CreatedBy               string             `json:"createdBy,omitempty"`
+	ChangedDate             string             `json:"changedDate,omitempty"`
+	ChangedBy               string             `json:"changedBy,omitempty"`
+	Observations            string             `json:"observations,omitempty"`
+	Addresses               []Address          `json:"addresses,omitempty"`
+	Contacts                []Contact          `json:"contacts,omitempty"`
+	Emails                  []Email            `json:"emails,omitempty"`
+	Teams                   []string           `json:"teams,omitempty"`
+	Relationships           []Relationship     `json:"relationships,omitempty"`
+	CustomFieldValues       []CustomFieldValue `json:"customFieldValues,omitempty"`
+	AtAssets                []Asset            `json:"atAssets,omitempty"`
 
 	Extra json.RawMessage `json:"-"`
 }

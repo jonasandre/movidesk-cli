@@ -4,14 +4,55 @@ This document is for maintainers cutting a release. Users do not need it.
 
 ## Pre-flight, once
 
-1. **Create the Homebrew tap repo** at
-   `https://github.com/jonasandre/homebrew-movidesk`. Empty `main` branch
-   is fine — GoReleaser will push the formula into `Formula/` automatically.
-2. **Create a GitHub Personal Access Token** scoped `repo` on the tap
-   repository. Save it as the `HOMEBREW_TAP_TOKEN` secret on the
-   `movidesk-cli` repo (Settings → Secrets and variables → Actions).
-3. Verify that branch protection on `main` does not block the release
-   workflow's `softprops/action-gh-release` step.
+### 1. Create the Homebrew tap repo
+
+`https://github.com/jonasandre/homebrew-movidesk`. Empty `main` branch is
+fine — GoReleaser pushes the formula into `Formula/` on every release.
+
+### 2. Mint the Homebrew tap token
+
+Use a **fine-grained Personal Access Token** (preferred over classic):
+smaller blast radius, mandatory expiration, granular permissions.
+
+Path: GitHub → **Settings** → **Developer settings** →
+**Personal access tokens** → **Fine-grained tokens** → **Generate new token**.
+
+| Field | Value |
+|---|---|
+| Token name | `goreleaser-homebrew-movidesk` |
+| Resource owner | `jonasandre` |
+| Repository access | **Only select repositories** → `homebrew-movidesk` |
+| Expiration | 90 days (set a calendar reminder to rotate) |
+
+Repository permissions — leave everything **No access** except:
+
+| Permission | Access | Why |
+|---|---|---|
+| **Contents** | Read and write | GoReleaser commits the formula file |
+| **Metadata** | Read-only | Granted automatically when any other permission is selected |
+
+Account permissions: none.
+
+Save the token as a repository secret on `movidesk-cli`:
+
+GitHub → `movidesk-cli` repo → **Settings** → **Secrets and variables** →
+**Actions** → **New repository secret**. Name it `HOMEBREW_TAP_TOKEN`,
+paste the `github_pat_…` value.
+
+### 3. Confirm release workflow access
+
+Verify branch protection on `main` does not block the release workflow's
+GoReleaser step. The workflow needs `contents: write` on the
+`movidesk-cli` repo (already granted in `.github/workflows/release.yml`)
+and the fine-grained token above for the tap repo.
+
+### 4. Calendar a rotation reminder
+
+The fine-grained token expires; set a reminder ~1 week before the
+expiration date to mint a fresh one and update `HOMEBREW_TAP_TOKEN`. If
+the token expires mid-release, GitHub Releases still publish — only the
+brew tap update fails. Re-run the release workflow once the token is
+refreshed to retry the tap push.
 
 ## Cutting a release
 

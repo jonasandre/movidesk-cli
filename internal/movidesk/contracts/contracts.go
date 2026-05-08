@@ -36,23 +36,23 @@ type Client struct {
 
 // TypeActivity is timeAgreement.typeActivities[n].
 type TypeActivity struct {
-	ID                  int     `json:"id,omitempty"`
-	WorkingTimeType     string  `json:"workingTimeType,omitempty"`
-	Activity            string  `json:"activity,omitempty"`
-	Franchise           int     `json:"franchise,omitempty"`
-	Value               float64 `json:"value,omitempty"`
-	ValueExceededHour   float64 `json:"valueExceededHour,omitempty"`
-	ShootdownContract   bool    `json:"shootdownContract,omitempty"`
-	AllowHoursExcedent  bool    `json:"allowHoursExcedent,omitempty"`
-	ActivityID          int     `json:"activityId,omitempty"`
+	ID                 int     `json:"id,omitempty"`
+	WorkingTimeType    string  `json:"workingTimeType,omitempty"`
+	Activity           string  `json:"activity,omitempty"`
+	Franchise          int     `json:"franchise,omitempty"`
+	Value              float64 `json:"value,omitempty"`
+	ValueExceededHour  float64 `json:"valueExceededHour,omitempty"`
+	ShootdownContract  bool    `json:"shootdownContract,omitempty"`
+	AllowHoursExcedent bool    `json:"allowHoursExcedent,omitempty"`
+	ActivityID         int     `json:"activityId,omitempty"`
 }
 
 // TimeTypeConsumption is timeAgreement.timeTypeConsumption[n].
 type TimeTypeConsumption struct {
-	ID                       int     `json:"id,omitempty"`
-	WorkingTimeType          string  `json:"workingTimeType,omitempty"`
-	Value                    float64 `json:"value,omitempty"`
-	WorkingTimeAgreementID   int     `json:"workingTimeAgreementId,omitempty"`
+	ID                     int     `json:"id,omitempty"`
+	WorkingTimeType        string  `json:"workingTimeType,omitempty"`
+	Value                  float64 `json:"value,omitempty"`
+	WorkingTimeAgreementID int     `json:"workingTimeAgreementId,omitempty"`
 }
 
 // EmailDestination is timeAgreement.emailDestinations[n].

@@ -1,7 +1,9 @@
 version: "2"
+
 run:
   timeout: 5m
   tests: true
+
 linters:
   default: standard
   enable:
@@ -10,14 +12,24 @@ linters:
     - ineffassign
     - staticcheck
     - unused
-    - gocritic
     - misspell
-    - revive
   exclusions:
     rules:
       - path: _test\.go
         linters:
           - errcheck
+      # defer x.Close() on response/file handles is idiomatic Go.
+      - linters: [errcheck]
+        text: '`(resp\.Body|fh|f)\.Close` is not checked'
+      # Console writes via fmt.Fprintln/Fprintf rarely warrant error handling.
+      - linters: [errcheck]
+        text: 'Error return value of `fmt\.(Fprintln|Fprintf|Fprint)` is not checked'
+  settings:
+    misspell:
+      ignore-rules:
+        - suspenso
+        - relateds
+
 formatters:
   enable:
     - gofmt

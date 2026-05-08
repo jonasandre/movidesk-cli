@@ -33,7 +33,7 @@ type Client struct {
 	Limiter    *Limiter
 	Retry      RetryPolicy
 	UserAgent  string
-	OnRequest  func(method, url string)  // optional verbose hook
+	OnRequest  func(method, url string)   // optional verbose hook
 	OnResponse func(status int, ms int64) // optional verbose hook
 }
 

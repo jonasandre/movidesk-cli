@@ -7,13 +7,13 @@ import (
 )
 
 type globalFlags struct {
-	tenant   string
-	output   string
-	noColor  bool
-	verbose  bool
-	noRetry  bool
-	compact  bool
-	user     string
+	tenant  string
+	output  string
+	noColor bool
+	verbose bool
+	noRetry bool
+	compact bool
+	user    string
 }
 
 var flags globalFlags

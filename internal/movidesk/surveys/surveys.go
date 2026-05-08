@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
-)
 
-import "github.com/jonasandre/movidesk-cli/internal/movidesk"
+	"github.com/jonasandre/movidesk-cli/internal/movidesk"
+)
 
 const (
 	pathQuestions = "/survey/questions"

@@ -7,10 +7,10 @@ import (
 )
 
 type RetryPolicy struct {
-	MaxAttempts  int
-	BaseBackoff  time.Duration
-	MaxBackoff   time.Duration
-	Disabled     bool
+	MaxAttempts int
+	BaseBackoff time.Duration
+	MaxBackoff  time.Duration
+	Disabled    bool
 }
 
 func DefaultRetry() RetryPolicy {

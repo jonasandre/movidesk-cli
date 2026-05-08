@@ -27,11 +27,11 @@ type Team struct {
 
 // Activity models /activity.
 type Activity struct {
-	ID                int    `json:"id,omitempty"`
-	Name              string `json:"name,omitempty"`
-	IsActive          bool   `json:"isActive"`
-	IsAllowsAllTeams  bool   `json:"isAllowsAllTeams"`
-	Teams             []Team `json:"teams,omitempty"`
+	ID               int    `json:"id,omitempty"`
+	Name             string `json:"name,omitempty"`
+	IsActive         bool   `json:"isActive"`
+	IsAllowsAllTeams bool   `json:"isAllowsAllTeams"`
+	Teams            []Team `json:"teams,omitempty"`
 
 	Extra json.RawMessage `json:"-"`
 }

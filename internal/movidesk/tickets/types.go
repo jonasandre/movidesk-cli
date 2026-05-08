@@ -38,18 +38,18 @@ type Attachment struct {
 
 // TimeAppointment is an action.timeAppointments[n] entry.
 type TimeAppointment struct {
-	ID                     int     `json:"id,omitempty"`
-	Activity               string  `json:"activity,omitempty"`
-	Date                   string  `json:"date,omitempty"`
-	PeriodStart            string  `json:"periodStart,omitempty"`
-	PeriodEnd              string  `json:"periodEnd,omitempty"`
-	WorkTime               string  `json:"workTime,omitempty"`
-	WorkTypeName           string  `json:"workTypeName,omitempty"`
-	Accountable            *Person `json:"accountable,omitempty"`
-	IsDeleted              bool    `json:"isDeleted,omitempty"`
-	CreatedBy              *Person `json:"createdBy,omitempty"`
-	CreatedDate            string  `json:"createdDate,omitempty"`
-	WorkTypeID             int     `json:"workTypeId,omitempty"`
+	ID           int     `json:"id,omitempty"`
+	Activity     string  `json:"activity,omitempty"`
+	Date         string  `json:"date,omitempty"`
+	PeriodStart  string  `json:"periodStart,omitempty"`
+	PeriodEnd    string  `json:"periodEnd,omitempty"`
+	WorkTime     string  `json:"workTime,omitempty"`
+	WorkTypeName string  `json:"workTypeName,omitempty"`
+	Accountable  *Person `json:"accountable,omitempty"`
+	IsDeleted    bool    `json:"isDeleted,omitempty"`
+	CreatedBy    *Person `json:"createdBy,omitempty"`
+	CreatedDate  string  `json:"createdDate,omitempty"`
+	WorkTypeID   int     `json:"workTypeId,omitempty"`
 }
 
 // Expense is an action.expenses[n] entry.
@@ -65,54 +65,54 @@ type Expense struct {
 
 // Action is a ticket.actions[n] entry.
 type Action struct {
-	ID                int               `json:"id,omitempty"`
-	Type              int               `json:"type,omitempty"`
-	Origin            int               `json:"origin,omitempty"`
-	Description       string            `json:"description,omitempty"`
-	HTMLDescription   string            `json:"htmlDescription,omitempty"`
-	Status            string            `json:"status,omitempty"`
-	Justification     string            `json:"justification,omitempty"`
-	CreatedDate       string            `json:"createdDate,omitempty"`
-	CreatedBy         *Person           `json:"createdBy,omitempty"`
-	IsDeleted         bool              `json:"isDeleted,omitempty"`
-	Tags              []string          `json:"tags,omitempty"`
-	TimeAppointments  []TimeAppointment `json:"timeAppointments,omitempty"`
-	Expenses          []Expense         `json:"expenses,omitempty"`
-	Attachments       []Attachment      `json:"attachments,omitempty"`
+	ID               int               `json:"id,omitempty"`
+	Type             int               `json:"type,omitempty"`
+	Origin           int               `json:"origin,omitempty"`
+	Description      string            `json:"description,omitempty"`
+	HTMLDescription  string            `json:"htmlDescription,omitempty"`
+	Status           string            `json:"status,omitempty"`
+	Justification    string            `json:"justification,omitempty"`
+	CreatedDate      string            `json:"createdDate,omitempty"`
+	CreatedBy        *Person           `json:"createdBy,omitempty"`
+	IsDeleted        bool              `json:"isDeleted,omitempty"`
+	Tags             []string          `json:"tags,omitempty"`
+	TimeAppointments []TimeAppointment `json:"timeAppointments,omitempty"`
+	Expenses         []Expense         `json:"expenses,omitempty"`
+	Attachments      []Attachment      `json:"attachments,omitempty"`
 
 	Extra json.RawMessage `json:"-"`
 }
 
 // ParentChild is a ticket.parentTickets[n] / childrenTickets[n] entry.
 type ParentChild struct {
-	ID            int    `json:"id"`
-	Subject       string `json:"subject,omitempty"`
-	IsDeleted     bool   `json:"isDeleted,omitempty"`
-	IsClosed      bool   `json:"isClosed,omitempty"`
-	BaseStatus    string `json:"baseStatus,omitempty"`
-	Status        string `json:"status,omitempty"`
+	ID         int    `json:"id"`
+	Subject    string `json:"subject,omitempty"`
+	IsDeleted  bool   `json:"isDeleted,omitempty"`
+	IsClosed   bool   `json:"isClosed,omitempty"`
+	BaseStatus string `json:"baseStatus,omitempty"`
+	Status     string `json:"status,omitempty"`
 }
 
 // OwnerHistory is a ticket.ownerHistories[n] entry.
 type OwnerHistory struct {
-	OwnerTeam              string  `json:"ownerTeam,omitempty"`
-	Owner                  *Person `json:"owner,omitempty"`
-	ChangedBy              *Person `json:"changedBy,omitempty"`
-	ChangedDate            string  `json:"changedDate,omitempty"`
-	PermanencyTime         int     `json:"permanencyTime,omitempty"`
-	PermanencyTimeFullTime int     `json:"permanencyTimeFullTime,omitempty"`
-	PermanencyTimeWorkingTime int  `json:"permanencyTimeWorkingTime,omitempty"`
+	OwnerTeam                 string  `json:"ownerTeam,omitempty"`
+	Owner                     *Person `json:"owner,omitempty"`
+	ChangedBy                 *Person `json:"changedBy,omitempty"`
+	ChangedDate               string  `json:"changedDate,omitempty"`
+	PermanencyTime            int     `json:"permanencyTime,omitempty"`
+	PermanencyTimeFullTime    int     `json:"permanencyTimeFullTime,omitempty"`
+	PermanencyTimeWorkingTime int     `json:"permanencyTimeWorkingTime,omitempty"`
 }
 
 // StatusHistory is a ticket.statusHistories[n] entry.
 type StatusHistory struct {
-	Status                 string  `json:"status,omitempty"`
-	Justification          string  `json:"justification,omitempty"`
-	ChangedBy              *Person `json:"changedBy,omitempty"`
-	ChangedDate            string  `json:"changedDate,omitempty"`
-	PermanencyTime         int     `json:"permanencyTime,omitempty"`
-	PermanencyTimeFullTime int     `json:"permanencyTimeFullTime,omitempty"`
-	PermanencyTimeWorkingTime int  `json:"permanencyTimeWorkingTime,omitempty"`
+	Status                    string  `json:"status,omitempty"`
+	Justification             string  `json:"justification,omitempty"`
+	ChangedBy                 *Person `json:"changedBy,omitempty"`
+	ChangedDate               string  `json:"changedDate,omitempty"`
+	PermanencyTime            int     `json:"permanencyTime,omitempty"`
+	PermanencyTimeFullTime    int     `json:"permanencyTimeFullTime,omitempty"`
+	PermanencyTimeWorkingTime int     `json:"permanencyTimeWorkingTime,omitempty"`
 }
 
 // CustomFieldItem is a ticket.customFieldValues[n].items[n].

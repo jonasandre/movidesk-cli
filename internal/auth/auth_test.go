@@ -22,8 +22,8 @@ func (m *memStore) Get(t string) (string, error) {
 	return v, nil
 }
 
-func (m *memStore) Set(t, v string) error  { m.data[t] = v; return nil }
-func (m *memStore) Delete(t string) error  { delete(m.data, t); return nil }
+func (m *memStore) Set(t, v string) error { m.data[t] = v; return nil }
+func (m *memStore) Delete(t string) error { delete(m.data, t); return nil }
 
 func TestResolveToken_EnvOverrides(t *testing.T) {
 	t.Setenv(EnvToken, "env-token")

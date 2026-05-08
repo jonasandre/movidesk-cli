@@ -81,14 +81,14 @@ func newTicketsActionsGetCmd() *cobra.Command {
 
 func newTicketsActionsAddCmd() *cobra.Command {
 	var (
-		atype           int
-		descr           string
-		descrFile       string
-		public          bool
-		internal        bool
-		tags            []string
-		justification   string
-		statusOverride  string
+		atype          int
+		descr          string
+		descrFile      string
+		public         bool
+		internal       bool
+		tags           []string
+		justification  string
+		statusOverride string
 	)
 	cmd := &cobra.Command{
 		Use:   "add <ticket-id>",

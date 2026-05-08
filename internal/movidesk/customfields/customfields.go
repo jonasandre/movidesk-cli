@@ -19,14 +19,14 @@ const (
 
 // InsertBody is the body for InsertValues / DeleteValues — a flat list of names.
 type InsertBody struct {
-	CustomFieldID    string   `json:"customfieldid"`
+	CustomFieldID     string   `json:"customfieldid"`
 	CustomFieldValues []string `json:"customfieldvalues"`
 }
 
 // UpdateBody is the body for UpdateValues — pairs of {oldname, newname}.
 type UpdateBody struct {
-	CustomFieldID    string         `json:"customfieldid"`
-	CustomFieldValues []UpdatePair  `json:"customfieldvalues"`
+	CustomFieldID     string       `json:"customfieldid"`
+	CustomFieldValues []UpdatePair `json:"customfieldvalues"`
 }
 
 // UpdatePair maps an old option name to its new name.

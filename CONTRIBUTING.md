@@ -14,8 +14,11 @@ make build
 
 Requirements:
 
-- Go 1.23+
-- (Optional) `golangci-lint` for `make lint`
+- Go 1.25+ (required by `golang.org/x/crypto`)
+- (Optional) `golangci-lint` **v2** for `make lint`. Install with
+  `go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest`.
+  v1 cannot read the project's `.golangci.yml` (`version: 2` schema) and
+  refuses to lint Go 1.25 modules.
 - (Optional) `goreleaser` for `make release-snapshot`
 
 ## Workflow
