@@ -30,6 +30,7 @@ func newAuthCmd() *cobra.Command {
 		newAuthStatusCmd(),
 		newAuthLogoutCmd(),
 		newAuthTokenCmd(),
+		newAuthSetUserCmd(),
 	)
 	return cmd
 }
@@ -69,11 +70,12 @@ func validateToken(ctx context.Context, baseURL, token string) error {
 
 func newAuthLoginCmd() *cobra.Command {
 	var (
-		tenant      string
-		label       string
-		baseURL     string
-		makeDefault bool
-		skipVerify  bool
+		tenant         string
+		label          string
+		baseURL        string
+		makeDefault    bool
+		skipVerify     bool
+		skipVerifyUser bool
 	)
 	cmd := &cobra.Command{
 		Use:   "login",
@@ -83,7 +85,13 @@ func newAuthLoginCmd() *cobra.Command {
 to an encrypted file under ~/.movidesk.
 
 By default, login validates the token by issuing GET /persons?$top=1 against
-the configured base URL. Use --skip-verify to bypass.`,
+the configured base URL. Use --skip-verify to bypass.
+
+After validating the token, login optionally prompts for a default user
+(Cod. Ref.) that will be auto-injected as createdBy on writes that need
+attribution. Pass --user <id> to set it non-interactively, or skip the prompt
+by leaving the answer empty. Use --skip-verify-user to skip the existence
+check (handy when the token's permissions can't read the persons API).`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if tenant == "" {
 				return errors.New("--tenant is required")
@@ -122,6 +130,23 @@ the configured base URL. Use --skip-verify to bypass.`,
 				}
 			}
 
+			// Resolve default user: --user from persistent flag, else interactive prompt.
+			userID := strings.TrimSpace(flags.user)
+			if userID == "" && term.IsTerminal(int(os.Stdin.Fd())) {
+				userID, err = readLine(cmd.ErrOrStderr(), "Default user (Cod. Ref.) [optional, press enter to skip]: ")
+				if err != nil {
+					return fmt.Errorf("read user: %w", err)
+				}
+			}
+			if userID != "" && !skipVerifyUser {
+				name, err := validateUser(cmd.Context(), tn.EffectiveBaseURL(), token, userID)
+				if err != nil {
+					return fmt.Errorf("validate user %q: %w (use --skip-verify-user to bypass)", userID, err)
+				}
+				fmt.Fprintf(cmd.ErrOrStderr(), "Default user: %s (%s)\n", userID, strOrDash(name))
+			}
+			tn.DefaultUser = userID
+
 			store := auth.New()
 			if err := store.Set(tenant, token); err != nil {
 				return fmt.Errorf("store token: %w", err)
@@ -143,8 +168,27 @@ the configured base URL. Use --skip-verify to bypass.`,
 	cmd.Flags().StringVar(&baseURL, "base-url", "", "override API base URL (sandbox)")
 	cmd.Flags().BoolVar(&makeDefault, "make-default", false, "set this tenant as the current one")
 	cmd.Flags().BoolVar(&skipVerify, "skip-verify", false, "do not validate the token against the API")
+	cmd.Flags().BoolVar(&skipVerifyUser, "skip-verify-user", false, "skip existence check on the default user")
 	_ = cmd.MarkFlagRequired("tenant")
 	return cmd
+}
+
+// readLine reads one line from stdin without echoing; used for non-secret
+// prompts like the default user id.
+func readLine(out interface{ Write([]byte) (int, error) }, prompt string) (string, error) {
+	if _, err := out.Write([]byte(prompt)); err != nil {
+		return "", err
+	}
+	var line string
+	_, err := fmt.Fscanln(os.Stdin, &line)
+	if err != nil {
+		// Fscanln treats empty input as an error; treat that as "skip".
+		if err.Error() == "unexpected newline" {
+			return "", nil
+		}
+		return "", err
+	}
+	return strings.TrimSpace(line), nil
 }
 
 func newAuthListCmd() *cobra.Command {
@@ -176,7 +220,11 @@ func newAuthListCmd() *cobra.Command {
 				if label == "" {
 					label = "—"
 				}
-				fmt.Fprintf(out, "%s%s\t%s\t%s\n", marker, n, label, t.EffectiveBaseURL())
+				user := t.DefaultUser
+				if user == "" {
+					user = "—"
+				}
+				fmt.Fprintf(out, "%s%s\t%s\t%s\tuser=%s\n", marker, n, label, t.EffectiveBaseURL(), user)
 			}
 			return nil
 		},
@@ -230,6 +278,16 @@ func newAuthStatusCmd() *cobra.Command {
 			fmt.Fprintf(out, "label:    %s\n", strOrDash(tn.Label))
 			fmt.Fprintf(out, "base_url: %s\n", tn.EffectiveBaseURL())
 			fmt.Fprintf(out, "token:    %s\n", auth.EncodePeek(tok))
+			if tn.DefaultUser != "" {
+				name, vErr := validateUser(cmd.Context(), tn.EffectiveBaseURL(), tok, tn.DefaultUser)
+				if vErr != nil {
+					fmt.Fprintf(out, "user:     %s (ERROR — %s)\n", tn.DefaultUser, vErr)
+				} else {
+					fmt.Fprintf(out, "user:     %s (%s)\n", tn.DefaultUser, strOrDash(name))
+				}
+			} else {
+				fmt.Fprintln(out, "user:     —")
+			}
 			if err != nil {
 				fmt.Fprintf(out, "status:   ERROR — %s\n", err)
 				return err
@@ -239,6 +297,75 @@ func newAuthStatusCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringVar(&tenantOverride, "tenant", "", "tenant to check (default: current)")
+	return cmd
+}
+
+func newAuthSetUserCmd() *cobra.Command {
+	var (
+		tenantOverride string
+		clear          bool
+		skipVerifyUser bool
+	)
+	cmd := &cobra.Command{
+		Use:   "set-user [<id>]",
+		Short: "Set or clear the default user (Cod. Ref.) for the current tenant",
+		Long: `Sets the default user that the CLI auto-injects as createdBy on writes that
+need attribution (e.g. tickets create, tickets actions add). Override per
+command with --user <id>.
+
+Pass --clear to remove the configured default.`,
+		Args: cobra.MaximumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if clear && len(args) > 0 {
+				return errors.New("--clear is mutually exclusive with a positional id")
+			}
+			if !clear && len(args) != 1 {
+				return errors.New("provide a user id, or pass --clear to remove")
+			}
+
+			cfg, err := config.Load()
+			if err != nil {
+				return err
+			}
+			tn, err := cfg.Resolve(tenantOverride)
+			if err != nil {
+				return err
+			}
+
+			if clear {
+				tn.DefaultUser = ""
+				cfg.Set(tn)
+				if err := cfg.Save(); err != nil {
+					return err
+				}
+				fmt.Fprintf(cmd.OutOrStdout(), "Cleared default user for tenant %q\n", tn.Name)
+				return nil
+			}
+
+			id := args[0]
+			if !skipVerifyUser {
+				tok, err := auth.ResolveToken(auth.New(), tn.Name)
+				if err != nil {
+					return err
+				}
+				name, err := validateUser(cmd.Context(), tn.EffectiveBaseURL(), tok, id)
+				if err != nil {
+					return fmt.Errorf("validate user %q: %w (use --skip-verify-user to bypass)", id, err)
+				}
+				fmt.Fprintf(cmd.ErrOrStderr(), "Default user: %s (%s)\n", id, strOrDash(name))
+			}
+			tn.DefaultUser = id
+			cfg.Set(tn)
+			if err := cfg.Save(); err != nil {
+				return err
+			}
+			fmt.Fprintf(cmd.OutOrStdout(), "Saved default user %q for tenant %q\n", id, tn.Name)
+			return nil
+		},
+	}
+	cmd.Flags().StringVar(&tenantOverride, "tenant", "", "tenant to update (default: current)")
+	cmd.Flags().BoolVar(&clear, "clear", false, "remove the configured default user")
+	cmd.Flags().BoolVar(&skipVerifyUser, "skip-verify-user", false, "skip existence check")
 	return cmd
 }
 

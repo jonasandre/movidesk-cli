@@ -32,7 +32,7 @@ func TestSaveAndLoad_RoundTrip(t *testing.T) {
 		CurrentTenant: "acme",
 		Defaults:      Defaults{Output: "table", PageSize: 50},
 		Tenants: map[string]*Tenant{
-			"acme": {Name: "acme", Label: "Acme Prod"},
+			"acme": {Name: "acme", Label: "Acme Prod", DefaultUser: "u-acme-bot"},
 			"beta": {Name: "beta", Label: "Beta", Output: "csv"},
 		},
 	}
@@ -49,7 +49,9 @@ func TestSaveAndLoad_RoundTrip(t *testing.T) {
 	assert.Equal(t, 50, loaded.Defaults.PageSize)
 	assert.Len(t, loaded.Tenants, 2)
 	assert.Equal(t, "acme", loaded.Tenants["acme"].Name)
+	assert.Equal(t, "u-acme-bot", loaded.Tenants["acme"].DefaultUser)
 	assert.Equal(t, "csv", loaded.Tenants["beta"].Output)
+	assert.Empty(t, loaded.Tenants["beta"].DefaultUser)
 }
 
 func TestResolve_OverrideWins(t *testing.T) {

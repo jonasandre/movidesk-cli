@@ -29,10 +29,11 @@ type Defaults struct {
 }
 
 type Tenant struct {
-	Name    string `yaml:"-"`
-	Label   string `yaml:"label,omitempty"`
-	BaseURL string `yaml:"base_url,omitempty"`
-	Output  string `yaml:"output,omitempty"`
+	Name        string `yaml:"-"`
+	Label       string `yaml:"label,omitempty"`
+	BaseURL     string `yaml:"base_url,omitempty"`
+	Output      string `yaml:"output,omitempty"`
+	DefaultUser string `yaml:"default_user,omitempty"`
 }
 
 type Config struct {

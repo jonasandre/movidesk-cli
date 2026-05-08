@@ -373,6 +373,97 @@ make test                                                             # tudo ver
 - Default columns por recurso (activities, contracts, contracts.consumption, surveys.questions, surveys.responses, articles) ✅
 - README com seções por família + cobertura completa ✅
 
+**Fase 3.5 — Default user per tenant (1 dia) — PRÓXIMA**
+
+Motivação: write endpoints da Movidesk aceitam um `Person.id` como autor da operação (ex.: `ticket.createdBy` é **obrigatório** no `POST /tickets`; `action.createdBy` é necessário pra atribuição correta de autoria em ações). Hoje o usuário do CLI precisa enviar `--set 'createdBy={"id":"u-123"}'` à mão em todo `tickets create` e em todo `actions add`. Para automações e migrações, isso polui scripts e abre espaço pra erro humano. Solução: configurar um **usuário padrão por tenant** durante o `auth login` e auto-injetar `createdBy` quando o body não o trouxer explicitamente.
+
+**Decisões locked:**
+- **Escopo**: `tickets create` + `tickets actions add` apenas. Updates e demais campos com `Person.id` ficam fora (preservar createdBy original em edits; `persons create.createdBy` é server-set; owner/team do ticket fica sem auto-inject pois exige `ownerTeam` em par).
+- **Flag de override**: `--user <id>` (alinhada à vocabulário do dono do projeto).
+- **Login flow**: prompt opcional após validar token. Aceita também via `auth login --user <id>` direto. Login valida existência do usuário via `GET /persons?id=<id>&$select=id,businessName`.
+
+**3.5.A — Config schema (30min)**
+- Em `internal/config/config.go`:
+  - Adicionar `DefaultUser string` ao struct `Tenant` com tag `yaml:"default_user,omitempty"`.
+- Sem migração necessária (campo opcional, default vazio).
+- Atualizar `internal/config/config_test.go` round-trip para cobrir o novo campo.
+
+**3.5.B — Auth login + set-user (2h)**
+- `internal/cli/auth.go`:
+  - `newAuthLoginCmd`:
+    - Adicionar flag `--user <id>` (opcional).
+    - Após `validateToken()`, se `--user` não foi passado e stdin é TTY, perguntar: `"Default user (Cod. Ref.) [optional, press enter to skip]: "`. Vazio = sem default.
+    - Se houver valor (flag ou prompt), validar via `GET /persons?id=<id>&$select=id,businessName` (reusa cliente do `validateToken`). Falha clara: `"user 'u-123' not found in tenant"` com sugestão de pular com `--skip-verify-user`.
+    - Persistir em `tn.DefaultUser`.
+  - `newAuthSetUserCmd` (novo, registrado pelo `newAuthCmd()`):
+    - `auth set-user [--tenant X] <id>` ou `auth set-user --clear` para remover.
+    - Mesma validação de existência.
+  - `newAuthListCmd`: nova coluna `user` (mostra "—" quando vazio).
+  - `newAuthStatusCmd`: linha `user:` mostrando o id e nome (`businessName`) buscado via `GET /persons?id=...`. Erro se não encontrado.
+- Helper de validação reutilizável em novo `internal/cli/user_validate.go`:
+  ```go
+  func validateUser(ctx context.Context, baseURL, token, userID string) (businessName string, err error)
+  ```
+
+**3.5.C — Persistent flag + helpers (1h)**
+- `internal/cli/root.go`:
+  - Adicionar `cmd.PersistentFlags().StringVar(&flags.user, "user", "", "default user (Cod. Ref.) for createdBy on writes; overrides tenant config; env: MOVIDESK_USER")`.
+- `internal/cli/client.go`:
+  - Em `resolved`, adicionar campo `userID string`. Resolver com prioridade: flag `--user` > env `MOVIDESK_USER` > `tn.DefaultUser`.
+- Novo `internal/cli/user.go`:
+  ```go
+  // injectCreatedBy adds {"createdBy":{"id": userID}} to body when:
+  //   - userID != ""
+  //   - body has no "createdBy" key (already explicit by user wins).
+  func injectCreatedBy(body map[string]any, userID string)
+  ```
+
+**3.5.D — Wiring nos comandos write (1h)**
+- `internal/cli/tickets.go` `newTicketsCreateCmd`: depois de `loadBody(...)`, chamar `injectCreatedBy(body, r.userID)`. Se nenhum default e nenhum override e body não tem `createdBy`, deixar o servidor errar com sua mensagem natural (não falhar localmente — usuário pode estar criando em endpoint que não exige).
+- `internal/cli/tickets_collections.go` `newTicketsActionsAddCmd`:
+  ```go
+  if r.userID != "" && a.CreatedBy == nil {
+      a.CreatedBy = &tickets.Person{ID: r.userID}
+  }
+  ```
+- `internal/cli/tickets_collections.go` `newTicketsActionsUpdateCmd`: **não** injetar (preservar createdBy original).
+
+**3.5.E — Tests (1h)**
+- `internal/config/config_test.go`: round-trip incluindo `DefaultUser`.
+- Novo `internal/cli/user_test.go`: testes unitários `injectCreatedBy` (não sobrescreve quando presente, injeta quando ausente, no-op quando userID vazio).
+- E2E em `internal/cli/tickets_e2e_test.go`:
+  - `TestE2E_TicketsCreate_AutoInjectsCreatedBy` (tenant tem default_user; verifica body PATCH carrega createdBy).
+  - `TestE2E_TicketsCreate_OverrideUserFlag` (flag `--user other` ganha sobre default).
+  - `TestE2E_TicketsCreate_ExplicitCreatedByWins` (`--set 'createdBy={"id":"x"}'` mantém valor explícito).
+- `internal/cli/tickets_collections_e2e_test.go`:
+  - `TestE2E_ActionsAdd_AutoInjectsCreatedBy`.
+  - `TestE2E_ActionsUpdate_DoesNotAutoInject` (regressão da decisão).
+- `internal/cli/persons_e2e_test.go` ou novo: `TestE2E_AuthLogin_PromptsAndValidatesUser` (httptest mock pra `/persons?id=` + stdin pipe).
+
+**3.5.F — README + plan sync (30min)**
+- README seção "Multi-tenant + auth": documentar fluxo do default user, override por flag/env, comando `auth set-user`.
+- README seção "Tickets — criando" e "Tickets — coleções → actions add": explicar auto-inject + como sobrescrever.
+- Atualizar `docs/plan.md` (cópia deste plano).
+
+**Verificação 3.5:**
+```bash
+make test                                                                # tudo verde
+./bin/movidesk-cli auth login --tenant test --user u-acme-bot            # prompt validates
+./bin/movidesk-cli auth list                                             # mostra user
+./bin/movidesk-cli auth status                                           # valida user existe
+./bin/movidesk-cli tickets create --set type=2 --set 'subject=Auto'      # createdBy auto
+./bin/movidesk-cli tickets create --user u-other --set 'subject=Other'   # override
+./bin/movidesk-cli tickets actions add 1 --internal --description "x"    # action.createdBy auto
+./bin/movidesk-cli auth set-user --clear                                 # tira default
+./bin/movidesk-cli tickets create --set 'subject=NoUser'                 # server escolhe (token holder)
+```
+
+**Risk register**:
+- Validação na hora do login pode falhar em tokens com permissão limitada → fallback `--skip-verify-user` documentado.
+- Usuário muda no Movidesk (ex.: pessoa desativada) → `auth status` reporta erro; usuário roda `auth set-user <novo>`.
+
+---
+
 **Fase 4 — Release v1.0 (1 semana)**
 - README completo, doc por comando (`docs/` gerada via `cobra-cli completion docs`)
 - Brew tap repo `homebrew-movidesk`

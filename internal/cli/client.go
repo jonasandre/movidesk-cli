@@ -11,12 +11,15 @@ import (
 	"github.com/jonasandre/movidesk-cli/internal/movidesk"
 )
 
+var _ = os.Getenv // keep os.Getenv import live regardless of OnRequest hook usage
+
 // resolved bundles a ready-to-use client and the resolved tenant/output info.
 type resolved struct {
 	cfg    *config.Config
 	tenant *config.Tenant
 	client *movidesk.Client
 	output string
+	userID string
 }
 
 // resolveClient loads config, resolves the active tenant, fetches its token,
@@ -54,5 +57,21 @@ func resolveClient(cmd *cobra.Command) (*resolved, error) {
 		tenant: tn,
 		client: c,
 		output: cfg.EffectiveOutput(tn, flags.output),
+		userID: resolveUser(tn),
 	}, nil
+}
+
+// resolveUser picks the active user id for createdBy injection, in priority:
+// CLI flag > env > tenant.DefaultUser. Returns "" when none is set.
+func resolveUser(tn *config.Tenant) string {
+	if flags.user != "" {
+		return flags.user
+	}
+	if v := os.Getenv(EnvUser); v != "" {
+		return v
+	}
+	if tn != nil {
+		return tn.DefaultUser
+	}
+	return ""
 }

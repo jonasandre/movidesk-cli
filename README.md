@@ -8,11 +8,11 @@ A command-line interface for the [Movidesk](https://www.movidesk.com) public RES
 - Output as JSON (default), human-readable table, or CSV.
 - Honors Movidesk's 10 req/min rate limit with automatic backoff and `Retry-After` support.
 
-> Status: **Phase 3 — All resources covered.** The CLI now wraps every API in the
-> Movidesk integration menu: `auth`, `tickets` (full schema + collections + custom fields),
-> `persons`, `services`, `activities`, `contracts` (+ consumption), `surveys`
-> (questions + responses), `kb articles`, `telephony` (queue + nonqueue + made-call-link),
-> `customfields options` (option pool), plus a `query` escape hatch for raw OData.
+> Status: **Phase 3.5 — Default user per tenant shipped.** All Movidesk APIs covered
+> (`auth`, `tickets` with full schema + collections + custom fields, `persons`,
+> `services`, `activities`, `contracts` + consumption, `surveys`, `kb articles`,
+> `telephony`, `customfields options`, `query`). Plus a per-tenant default user
+> that the CLI auto-injects as `createdBy` on `tickets create` and `tickets actions add`.
 > See [the plan](./docs/plan.md) for the roadmap to v1.0.
 
 ## Install
@@ -61,6 +61,44 @@ movidesk-cli auth logout --all                # nuke everything
 You can also override the active tenant per-command via `--tenant` or the
 `MOVIDESK_TENANT` environment variable. CI pipelines may skip the keychain
 entirely by exporting `MOVIDESK_TOKEN`; if both are set, the env var wins.
+
+### Default user per tenant
+
+Movidesk requires a `createdBy.id` (a person's Cod. Ref.) on writes that need
+attribution: `POST /tickets` is rejected without it, and ticket actions you
+create are recorded against that user. The CLI lets you configure it once
+per tenant so you don't repeat `--set 'createdBy={"id":"..."}'` everywhere.
+
+```bash
+# Set during login (interactive prompt after token validation).
+movidesk-cli auth login --tenant prod
+
+# Or non-interactively.
+movidesk-cli auth login --tenant prod --user u-bot
+
+# Change later.
+movidesk-cli auth set-user u-other-bot
+movidesk-cli auth set-user --clear           # remove default
+
+# Inspect.
+movidesk-cli auth list                       # shows user= column
+movidesk-cli auth status                     # validates user still exists
+```
+
+**Override per command** with `--user <id>` or the `MOVIDESK_USER` env var.
+An explicit `createdBy` in the body (`--file`, `--from-template`, `--set createdBy=...`)
+always wins over the default.
+
+**Where it auto-injects** (intentionally narrow):
+
+- `tickets create` — adds `createdBy.id` when the body has none.
+- `tickets actions add` — sets `Action.CreatedBy` when not specified.
+
+`tickets actions update` does **not** auto-inject — original authorship is
+preserved. `persons create.createdBy` is server-set (read-only).
+
+If your token cannot read `/persons` (some restricted keys), pass
+`--skip-verify-user` during login or `auth set-user`.
 
 ## Tickets
 

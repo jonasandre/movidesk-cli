@@ -135,6 +135,9 @@ func newTicketsActionsAddCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			if r.userID != "" && a.CreatedBy == nil {
+				a.CreatedBy = &tickets.Person{ID: r.userID}
+			}
 			raw, err := tickets.New(r.client).AddAction(cmd.Context(), id, a)
 			if err != nil {
 				return err

@@ -196,6 +196,7 @@ func newTicketsCreateCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			injectCreatedBy(body, r.userID)
 			svc := tickets.New(r.client)
 			raw, err := svc.Create(cmd.Context(), body, returnAllProperties)
 			if err != nil {

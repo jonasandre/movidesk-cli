@@ -13,6 +13,7 @@ type globalFlags struct {
 	verbose  bool
 	noRetry  bool
 	compact  bool
+	user     string
 }
 
 var flags globalFlags
@@ -37,6 +38,7 @@ formats output as JSON, table or CSV, and respects Movidesk's rate limit of
 	cmd.PersistentFlags().BoolVarP(&flags.verbose, "verbose", "v", false, "verbose logging to stderr")
 	cmd.PersistentFlags().BoolVar(&flags.noRetry, "no-retry", false, "disable automatic retry on 429/5xx")
 	cmd.PersistentFlags().BoolVar(&flags.compact, "compact", false, "compact JSON output (no indentation)")
+	cmd.PersistentFlags().StringVar(&flags.user, "user", "", "default user id (Cod. Ref.) for createdBy on writes; overrides tenant config; env: MOVIDESK_USER")
 
 	cmd.AddCommand(newAuthCmd())
 	cmd.AddCommand(newTicketsCmd())
