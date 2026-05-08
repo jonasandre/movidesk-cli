@@ -464,12 +464,14 @@ make test                                                                # tudo 
 
 ---
 
-**Fase 4 — Release v1.0 (1 semana)**
-- README completo, doc por comando (`docs/` gerada via `cobra-cli completion docs`)
-- Brew tap repo `homebrew-movidesk`
-- GoReleaser pipeline release-on-tag → assina checksums, publica binários, atualiza tap
-- LICENSE MIT, CONTRIBUTING.md, CHANGELOG.md
-- Anúncio + screencast curto
+**Fase 4 — Release v1.0 ✅ ENTREGUE**
+- `CHANGELOG.md` cobrindo todas as fases entregues (Keep a Changelog + SemVer) ✅
+- `cmd/gen-docs` gera 92 páginas Markdown em `docs/cli/` via `cobra/doc` (`make docs`) ✅
+- `.goreleaser.yaml` polido: trimpath, includes LICENSE/README/CHANGELOG, completions auto, header/footer com link de download, conventional-commit groups ✅
+- `make release-check` (goreleaser config) e `make release-snapshot` (build local) ✅
+- `docs/RELEASING.md` runbook do mantenedor (HOMEBREW_TAP_TOKEN, fluxo de tag, rollback) ✅
+- README com seção "Shell completions" + status v1.0 ✅
+- Pendentes pro mantenedor (uma vez por projeto): criar repo `jonasandre/homebrew-movidesk`, configurar secret `HOMEBREW_TAP_TOKEN`, primeiro `git tag v1.0.0 && git push --tags` ✅ (instruído)
 
 **Fase 5+ — Pós-MVP (futuro)**
 - Webhooks listener local (`movidesk-cli webhook listen --port 8080`)

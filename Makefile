@@ -9,7 +9,7 @@ LDFLAGS      := -s -w \
                 -X $(VERSION_PKG).Commit=$(COMMIT) \
                 -X $(VERSION_PKG).Date=$(DATE)
 
-.PHONY: all build test lint fmt vet tidy run clean install release-snapshot
+.PHONY: all build test lint fmt vet tidy run clean install release-snapshot docs
 
 all: lint test build
 
@@ -48,3 +48,10 @@ clean:
 release-snapshot:
 	@command -v goreleaser >/dev/null || { echo "goreleaser not installed (https://goreleaser.com)"; exit 1; }
 	goreleaser release --snapshot --clean
+
+release-check:
+	@command -v goreleaser >/dev/null || { echo "goreleaser not installed (https://goreleaser.com)"; exit 1; }
+	goreleaser check
+
+docs:
+	go run ./cmd/gen-docs

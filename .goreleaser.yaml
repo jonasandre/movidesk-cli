@@ -5,6 +5,7 @@ project_name: movidesk-cli
 before:
   hooks:
     - go mod tidy
+    - go test -count=1 ./...
 
 builds:
   - id: movidesk-cli
@@ -14,6 +15,8 @@ builds:
       - CGO_ENABLED=0
     goos: [linux, darwin, windows]
     goarch: [amd64, arm64]
+    flags:
+      - -trimpath
     ldflags:
       - -s -w
       - -X github.com/jonasandre/movidesk-cli/internal/version.Version={{.Version}}
@@ -28,12 +31,16 @@ archives:
     format_overrides:
       - goos: windows
         formats: [zip]
+    files:
+      - LICENSE
+      - README.md
+      - CHANGELOG.md
 
 checksum:
   name_template: 'checksums.txt'
 
 snapshot:
-  version_template: '{{ .Tag }}-next'
+  version_template: '{{ .Version }}-next'
 
 changelog:
   sort: asc
@@ -43,10 +50,35 @@ changelog:
       - '^docs:'
       - '^test:'
       - '^chore:'
+      - '^ci:'
+      - 'Merge pull request'
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\(.+\))??!?:.+$'
+      order: 0
+    - title: 'Bug Fixes'
+      regexp: '^.*?fix(\(.+\))??!?:.+$'
+      order: 1
+    - title: Others
+      order: 999
 
 release:
   draft: true
   prerelease: auto
+  header: |
+    ## movidesk-cli {{ .Tag }}
+
+    Pre-built binaries for darwin / linux / windows on amd64 and arm64.
+
+    ```bash
+    # Homebrew (macOS / Linux)
+    brew install jonasandre/movidesk/movidesk-cli
+
+    # Direct download
+    curl -L https://github.com/jonasandre/movidesk-cli/releases/download/{{ .Tag }}/movidesk-cli_{{ trimprefix .Tag "v" }}_$(uname -s | tr A-Z a-z)_$(uname -m | sed 's/x86_64/amd64/').tar.gz | tar xz
+    ```
+  footer: |
+    **Full Changelog**: https://github.com/jonasandre/movidesk-cli/compare/{{ .PreviousTag }}...{{ .Tag }}
 
 brews:
   - name: movidesk-cli
@@ -54,10 +86,12 @@ brews:
       owner: jonasandre
       name: homebrew-movidesk
       token: '{{ .Env.HOMEBREW_TAP_TOKEN }}'
+    directory: Formula
     homepage: https://github.com/jonasandre/movidesk-cli
     description: CLI for the Movidesk REST API
     license: MIT
     test: |
-      system "#{bin}/movidesk-cli", "--version"
+      assert_match "movidesk-cli", shell_output("#{bin}/movidesk-cli --version")
     install: |
       bin.install "movidesk-cli"
+      generate_completions_from_executable(bin/"movidesk-cli", "completion")

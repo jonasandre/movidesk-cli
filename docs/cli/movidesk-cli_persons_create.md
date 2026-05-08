@@ -1,0 +1,35 @@
+## movidesk-cli persons create
+
+Create a person from a JSON body, template, or --set overrides
+
+```
+movidesk-cli persons create [flags]
+```
+
+### Options
+
+```
+  -f, --file string                 path to JSON body
+      --from-template string        load ~/.movidesk/templates/<name>.json
+      --from-template-file string   load template from a specific path
+  -h, --help                        help for create
+      --return-all                  ask Movidesk to return the full person
+      --set strings                 override fields, e.g. --set personType=1 --set businessName="Joe"
+```
+
+### Options inherited from parent commands
+
+```
+      --compact         compact JSON output (no indentation)
+      --no-color        disable colored output
+      --no-retry        disable automatic retry on 429/5xx
+  -o, --output string   output format: json|table|csv (default: tenant or 'json')
+      --tenant string   tenant name (overrides current tenant; env: MOVIDESK_TENANT)
+      --user string     default user id (Cod. Ref.) for createdBy on writes; overrides tenant config; env: MOVIDESK_USER
+  -v, --verbose         verbose logging to stderr
+```
+
+### SEE ALSO
+
+* [movidesk-cli persons](movidesk-cli_persons.md)	 - Manage Movidesk persons (/persons)
+

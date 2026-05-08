@@ -8,12 +8,13 @@ A command-line interface for the [Movidesk](https://www.movidesk.com) public RES
 - Output as JSON (default), human-readable table, or CSV.
 - Honors Movidesk's 10 req/min rate limit with automatic backoff and `Retry-After` support.
 
-> Status: **Phase 3.5 — Default user per tenant shipped.** All Movidesk APIs covered
+> Status: **v1.0** — every Movidesk API in the integration menu is wrapped
 > (`auth`, `tickets` with full schema + collections + custom fields, `persons`,
 > `services`, `activities`, `contracts` + consumption, `surveys`, `kb articles`,
-> `telephony`, `customfields options`, `query`). Plus a per-tenant default user
-> that the CLI auto-injects as `createdBy` on `tickets create` and `tickets actions add`.
-> See [the plan](./docs/plan.md) for the roadmap to v1.0.
+> `telephony`, `customfields options`, `query`). Per-tenant default user
+> auto-injected as `createdBy` on writes that need attribution. Distributed
+> via GitHub Releases and Homebrew tap.
+> Reference docs per command live under [`docs/cli/`](./docs/cli/).
 
 ## Install
 
@@ -32,6 +33,24 @@ Download the appropriate archive for your platform from the [Releases](https://g
 ```bash
 brew install jonasandre/movidesk/movidesk-cli
 ```
+
+### Shell completions
+
+Cobra ships completions for bash, zsh, fish and PowerShell. After install:
+
+```bash
+# macOS / Linux — zsh
+movidesk-cli completion zsh > "${fpath[1]}/_movidesk-cli"
+
+# bash
+movidesk-cli completion bash > /usr/local/etc/bash_completion.d/movidesk-cli
+
+# fish
+movidesk-cli completion fish > ~/.config/fish/completions/movidesk-cli.fish
+```
+
+Reopen the shell or `source` the file once and tab-completion works.
+The Homebrew formula registers completions automatically.
 
 ## Quickstart
 
@@ -467,13 +486,17 @@ Override the location with `MOVIDESK_HOME` (handy for tests and ephemeral CI env
 ## Development
 
 ```bash
-make build          # build binary into ./bin
-make test           # race-enabled, no cache
-make lint           # golangci-lint
-make cover          # coverage summary
+make build              # build binary into ./bin
+make test               # race-enabled, no cache
+make lint               # golangci-lint
+make cover              # coverage summary
+make docs               # regenerate docs/cli/*.md from Cobra
 make run ARGS="auth list"
+make release-check      # validate .goreleaser.yaml
 make release-snapshot   # local goreleaser dry-run
 ```
+
+For maintainers cutting releases, see [`docs/RELEASING.md`](./docs/RELEASING.md).
 
 The Go module layout:
 

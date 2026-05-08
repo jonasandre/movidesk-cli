@@ -59,3 +59,7 @@ formats output as JSON, table or CSV, and respects Movidesk's rate limit of
 func Execute() error {
 	return newRootCmd().Execute()
 }
+
+// NewRootForDocs is exported so tools (notably cmd/gen-docs) can walk the
+// command tree and emit Markdown reference pages without invoking commands.
+func NewRootForDocs() *cobra.Command { return newRootCmd() }
