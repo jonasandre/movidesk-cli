@@ -1,0 +1,63 @@
+version: 2
+
+project_name: movidesk-cli
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: movidesk-cli
+    main: ./cmd/movidesk-cli
+    binary: movidesk-cli
+    env:
+      - CGO_ENABLED=0
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+    ldflags:
+      - -s -w
+      - -X github.com/jonasandre/movidesk-cli/internal/version.Version={{.Version}}
+      - -X github.com/jonasandre/movidesk-cli/internal/version.Commit={{.ShortCommit}}
+      - -X github.com/jonasandre/movidesk-cli/internal/version.Date={{.Date}}
+
+archives:
+  - id: default
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  version_template: '{{ .Tag }}-next'
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+
+release:
+  draft: true
+  prerelease: auto
+
+brews:
+  - name: movidesk-cli
+    repository:
+      owner: jonasandre
+      name: homebrew-movidesk
+      token: '{{ .Env.HOMEBREW_TAP_TOKEN }}'
+    homepage: https://github.com/jonasandre/movidesk-cli
+    description: CLI for the Movidesk REST API
+    license: MIT
+    test: |
+      system "#{bin}/movidesk-cli", "--version"
+    install: |
+      bin.install "movidesk-cli"
