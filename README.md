@@ -8,7 +8,7 @@ A command-line interface for the [Movidesk](https://www.movidesk.com) public RES
 - Output as JSON (default), human-readable table, or CSV.
 - Honors Movidesk's 10 req/min rate limit with automatic backoff and `Retry-After` support.
 
-> Status: **Phase 0 — Foundation.** Auth and the core HTTP client are working. Resource commands (tickets, persons, services, …) ship in subsequent phases — see [the plan](./docs/plan.md) for the roadmap.
+> Status: **Phase 1 — Tickets shipped.** Auth, HTTP client and the `tickets` family (`list`, `get`, `create`, `update`, `html`, `past list`, `merged list`, `attach`) are usable. Other resource families (persons, services, surveys, …) land in subsequent phases — see [the plan](./docs/plan.md).
 
 ## Install
 
@@ -56,6 +56,77 @@ movidesk-cli auth logout --all                # nuke everything
 You can also override the active tenant per-command via `--tenant` or the
 `MOVIDESK_TENANT` environment variable. CI pipelines may skip the keychain
 entirely by exporting `MOVIDESK_TOKEN`; if both are set, the env var wins.
+
+## Tickets
+
+```bash
+# List recent tickets (≤ 90 days). Token is sent automatically.
+movidesk-cli tickets list --top 5 --output table
+
+# OData filters and projection.
+movidesk-cli tickets list \
+  --filter "createdDate gt 2026-01-01T00:00:00Z" \
+  --select id,subject,status \
+  --orderby "id desc" \
+  --top 50
+
+# Auto-pagination: walk every page (respects rate limit; --max caps the total).
+movidesk-cli tickets list --filter "status eq 'Novo'" --all --max 1000 --output csv > novos.csv
+
+# Single ticket by id or protocol.
+movidesk-cli tickets get 1
+movidesk-cli tickets get --protocol MOVI202109000001
+
+# HTML body of a specific action.
+movidesk-cli tickets html 1 --action-id 3 --output table
+
+# Tickets older than 90 days live on a separate endpoint.
+movidesk-cli tickets past list --filter "createdDate lt 2025-01-01T00:00:00Z" --top 50
+movidesk-cli tickets merged list --top 20
+```
+
+### Creating tickets
+
+Three input modes — pick whichever fits:
+
+```bash
+# 1) JSON body file.
+cat > new.json <<'JSON'
+{ "type": 2, "subject": "API outage", "category": "Suporte", "createdBy": { "id": "u-123" } }
+JSON
+movidesk-cli tickets create --file new.json --return-all
+
+# 2) Saved template under ~/.movidesk/templates/<name>.json.
+mkdir -p ~/.movidesk/templates
+cat > ~/.movidesk/templates/support.json <<'JSON'
+{ "type": 2, "category": "Suporte", "urgency": "Média" }
+JSON
+movidesk-cli tickets create --from-template support \
+  --set subject="API outage" --set createdBy='{"id":"u-123"}'
+
+# 3) Plain --set overrides for trivial cases (values are JSON-parsed first).
+movidesk-cli tickets create --set type=2 --set subject="Quick test"
+```
+
+`--set key=value` accepts JSON values; `--set type=2` is parsed as a number,
+`--set tags='["alpha","beta"]'` as an array, anything else as a string.
+
+### Updating tickets
+
+```bash
+movidesk-cli tickets update 42 --set subject="New subject"
+movidesk-cli tickets update 42 --file patch.json
+```
+
+### Attaching files
+
+```bash
+movidesk-cli tickets attach 12 --action-id 34 --file ./report.pdf
+movidesk-cli tickets attach 12 --action-id 34 --file ./image.png --name "screenshot.png"
+```
+
+The action id is required; Movidesk records the upload against an existing
+ticket action.
 
 ## Output formats
 

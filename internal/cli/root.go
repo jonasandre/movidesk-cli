@@ -39,6 +39,7 @@ formats output as JSON, table or CSV, and respects Movidesk's rate limit of
 	cmd.PersistentFlags().BoolVar(&flags.compact, "compact", false, "compact JSON output (no indentation)")
 
 	cmd.AddCommand(newAuthCmd())
+	cmd.AddCommand(newTicketsCmd())
 	_ = flags // referenced by subcommand packages
 
 	return cmd

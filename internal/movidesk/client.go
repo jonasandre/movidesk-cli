@@ -115,6 +115,9 @@ func (c *Client) do(ctx context.Context, method, path string, params url.Values,
 			contentType = "application/json"
 		case io.Reader:
 			reqBody = b
+			if ct, ok := body.(interface{ ContentType() string }); ok {
+				contentType = ct.ContentType()
+			}
 		default:
 			buf, err := json.Marshal(body)
 			if err != nil {

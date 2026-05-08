@@ -18,6 +18,9 @@ func (tableFormatter) Render(w io.Writer, v any, opts Options) error {
 	}
 
 	cols := opts.Columns
+	if len(cols) == 0 && opts.Resource != "" {
+		cols = Defaults(opts.Resource)
+	}
 	if len(cols) == 0 {
 		cols = pickColumns(rows[0])
 	}

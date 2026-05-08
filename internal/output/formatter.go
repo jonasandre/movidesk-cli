@@ -15,9 +15,10 @@ const (
 
 // Options configure rendering.
 type Options struct {
-	Compact bool     // JSON only: no indentation
-	Color   bool     // table only: ANSI colors
-	Columns []string // table/csv: explicit column list (dot-paths)
+	Compact  bool     // JSON only: no indentation
+	Color    bool     // table only: ANSI colors
+	Columns  []string // table/csv: explicit column list (dot-paths)
+	Resource string   // when set, table/csv use Defaults(resource) if Columns empty
 }
 
 // Formatter renders v to w. v is typically a []any or a single object decoded
