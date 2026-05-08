@@ -18,10 +18,12 @@ var defaultColumns = map[string][]string{
 	"tickets.customfields": {"label", "customFieldId", "customFieldRuleId", "line", "value", "items"},
 	"persons":              {"id", "businessName", "corporateName", "personType", "profileType", "accessProfile", "isActive"},
 	"services":             {"id", "name", "parentServiceId", "serviceForTicketType", "isVisible", "allowSelection", "isActive"},
-	"activities":           {"id", "subject", "createdDate"},
-	"contracts":            {"id", "name", "isActive"},
-	"surveys":              {"id", "name", "isActive"},
-	"articles":             {"id", "title", "status", "createdDate"},
+	"activities":           {"id", "name", "isActive", "isAllowsAllTeams"},
+	"contracts":            {"id", "name", "renewalDay", "contractedHours", "baseAmount", "isActive"},
+	"contracts.consumption": {"id", "name", "period", "consumedHours", "baseAmount", "exceededHourAmount"},
+	"surveys.questions":    {"id", "type", "isActive"},
+	"surveys.responses":    {"id", "questionId", "type", "ticketId", "value", "responseDate"},
+	"articles":             {"id", "title", "articleStatus", "createdDate", "updatedDate"},
 }
 
 // Defaults returns the registered default columns for a resource, or nil.

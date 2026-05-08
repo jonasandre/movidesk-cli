@@ -8,7 +8,12 @@ A command-line interface for the [Movidesk](https://www.movidesk.com) public RES
 - Output as JSON (default), human-readable table, or CSV.
 - Honors Movidesk's 10 req/min rate limit with automatic backoff and `Retry-After` support.
 
-> Status: **Phase 2 — Persons + Services shipped.** Auth, HTTP client, full ticket schema, the `tickets` family, the `persons` family (`list`, `get`, `create`, `update`, `delete`, `customfields show/set/clear`) and the `services` family (`list`, `get`, `create`, `update`, `delete`) are usable. Activities, contracts, surveys, telephony, KB articles, and option-pool management land next — see [the plan](./docs/plan.md).
+> Status: **Phase 3 — All resources covered.** The CLI now wraps every API in the
+> Movidesk integration menu: `auth`, `tickets` (full schema + collections + custom fields),
+> `persons`, `services`, `activities`, `contracts` (+ consumption), `surveys`
+> (questions + responses), `kb articles`, `telephony` (queue + nonqueue + made-call-link),
+> `customfields options` (option pool), plus a `query` escape hatch for raw OData.
+> See [the plan](./docs/plan.md) for the roadmap to v1.0.
 
 ## Install
 
@@ -292,6 +297,99 @@ movidesk-cli services delete 5712 --force
 > ℹ️ When updating a parent service that has children, Movidesk keeps the
 > existing tree structure intact unless you explicitly set `parentServiceId`
 > on each child. The CLI does not auto-cascade.
+
+## Activities
+
+`/activity` uses cursor-based pagination (`limit`/`startingAfter`) instead of OData.
+
+```bash
+movidesk-cli activities list --name "Triage" --limit 50
+movidesk-cli activities list --all --max 500
+movidesk-cli activities get 12
+movidesk-cli activities create --set name=Triage --set isActive=true --set isAllowsAllTeams=false
+movidesk-cli activities update 12 --set name="Triage v2"
+movidesk-cli activities add-teams 12 --team Suporte --team Comercial
+movidesk-cli activities delete 12 --force
+```
+
+## Contracts
+
+```bash
+# Time agreements (cadastro de contratos de horas).
+movidesk-cli contracts list --filter "isActive eq true"
+movidesk-cli contracts get 1
+movidesk-cli contracts create --file contract.json --return-all
+movidesk-cli contracts update 1 --set baseAmount=1500.00
+movidesk-cli contracts delete 1 --force
+
+# Consumption rows. When filtering by period, name is required by Movidesk.
+movidesk-cli contracts consumption list \
+  --filter "name eq 'Default' and period gt 2026-01-01T00:00:00Z" \
+  --output csv > consumption.csv
+```
+
+## Surveys
+
+```bash
+movidesk-cli surveys questions list                       # all questions
+movidesk-cli surveys questions list --type 3              # NPS only
+movidesk-cli surveys questions get QWMv
+
+movidesk-cli surveys responses list --limit 100
+movidesk-cli surveys responses list --all --max 5000 --output csv > responses.csv
+```
+
+## Knowledge base
+
+The public KB API exposes single-article reads only. You must already know
+the article id (no list endpoint).
+
+```bash
+movidesk-cli kb articles get 19040
+```
+
+## Telephony
+
+These commands fire call events at Movidesk so a phone system integration
+can attach calls to tickets. Two flavors:
+
+```bash
+# Queue-controlled (POST). event ∈ receivedCall|transferedCall|completedCall|lostCall|canceledCall.
+movidesk-cli telephony queue --event receivedCall \
+  --set id=call-abc --set queueId=1 --set clientNumber="+55 47 9999-9999" \
+  --set callDate=2026-04-01T13:00
+
+# No-queue (GET). event ∈ startTransferedCall|completedCall|startCanceledCall.
+movidesk-cli telephony nonqueue --event startTransferedCall \
+  --param id=call-abc --param branchLine=1001
+
+# Attach a recording link to an outbound call.
+movidesk-cli telephony made-call-link --set id=call-abc --set link=https://recordings/x
+```
+
+## Custom field option pool
+
+These commands manage the **dropdown options** of list-type custom fields
+tenant-wide — they are NOT for setting a value on a specific ticket or
+person (use `tickets customfields set` / `persons customfields set`
+for that).
+
+```bash
+movidesk-cli customfields options add    --field 125529 --value "Baixa" --value "Alta"
+movidesk-cli customfields options rename --field 125529 --pair "Baixa=Pequena" --pair "Alta=Crítica"
+movidesk-cli customfields options remove --field 125529 --value "Pequena"
+```
+
+## Query escape hatch
+
+Need to call an endpoint not covered by a typed subcommand? Use `query`.
+GET-only (and DELETE for cleanup); writes go through the typed subcommands.
+
+```bash
+movidesk-cli query /tickets --filter "id eq 1"
+movidesk-cli query /persons --select id,businessName --top 5 --all --max 1000
+movidesk-cli query /someNewEndpoint --param foo=bar
+```
 
 ## Output formats
 

@@ -361,9 +361,17 @@ make test                                                             # tudo ver
 - README seções "Persons", "Person custom fields", "Services" ✅
 - Confirmação obrigatória pra `delete` (`--force` pra skip; refusa em pipe sem `--force`) ✅
 
-**Fase 3 — Restantes (2-3 semanas)**
-- `activities`, `contracts` (+ consumption), `surveys` (questions/responses), `telephony` (com/sem fila), `kb articles`, `customfields` manipulação
-- Comando `query <resource>` escape hatch
+**Fase 3 — Restantes ✅ ENTREGUE**
+- `activities` (CRUD + add-teams, cursor pagination) ✅
+- `contracts` (CRUD) + `contracts consumption list` (period filter requires name) ✅
+- `surveys questions list/get` (read-only) ✅
+- `surveys responses list` (cursor pagination) ✅
+- `kb articles get <id>` (single-article only — no public list endpoint) ✅
+- `telephony queue/nonqueue/made-call-link` cobrindo todos os asterisk_* ✅
+- `customfields options add/rename/remove` (`/ticketCustomFieldValue/{Insert,Update,Delete}Values`) ✅
+- `query <path>` escape hatch (GET/DELETE com auto-paginação) ✅
+- Default columns por recurso (activities, contracts, contracts.consumption, surveys.questions, surveys.responses, articles) ✅
+- README com seções por família + cobertura completa ✅
 
 **Fase 4 — Release v1.0 (1 semana)**
 - README completo, doc por comando (`docs/` gerada via `cobra-cli completion docs`)

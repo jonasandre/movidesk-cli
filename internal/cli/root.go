@@ -42,6 +42,13 @@ formats output as JSON, table or CSV, and respects Movidesk's rate limit of
 	cmd.AddCommand(newTicketsCmd())
 	cmd.AddCommand(newPersonsCmd())
 	cmd.AddCommand(newServicesCmd())
+	cmd.AddCommand(newActivitiesCmd())
+	cmd.AddCommand(newContractsCmd())
+	cmd.AddCommand(newSurveysCmd())
+	cmd.AddCommand(newKBCmd())
+	cmd.AddCommand(newTelephonyCmd())
+	cmd.AddCommand(newCustomFieldsCmd())
+	cmd.AddCommand(newQueryCmd())
 	_ = flags // referenced by subcommand packages
 
 	return cmd
