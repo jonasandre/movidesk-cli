@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] — 2026-05-08
+
+### Fixed
+
+- Homebrew Cask install on v1.0.1 aborted because the cask declared
+  `bash_completion`/`zsh_completion`/`fish_completion` paths but the
+  release tarball did not actually ship the completion scripts.
+  GoReleaser now generates `completions/movidesk-cli.{bash,zsh,fish}`
+  via a `before` hook and bundles them in every archive.
+
 ## [1.0.1] — 2026-05-08
 
 ### Security
@@ -114,6 +124,7 @@ First public release. Covers every API listed in the Movidesk integration menu.
   re-emits the response untouched, so even fields the SDK doesn't yet
   type are preserved end-to-end.
 
-[Unreleased]: https://github.com/jonasandre/movidesk-cli/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/jonasandre/movidesk-cli/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/jonasandre/movidesk-cli/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/jonasandre/movidesk-cli/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/jonasandre/movidesk-cli/releases/tag/v1.0.0

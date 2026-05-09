@@ -6,6 +6,7 @@ before:
   hooks:
     - go mod tidy
     - go test -count=1 ./...
+    - sh -c 'mkdir -p completions && go run ./cmd/movidesk-cli completion bash > completions/movidesk-cli.bash && go run ./cmd/movidesk-cli completion zsh > completions/movidesk-cli.zsh && go run ./cmd/movidesk-cli completion fish > completions/movidesk-cli.fish'
 
 builds:
   - id: movidesk-cli
@@ -35,6 +36,7 @@ archives:
       - LICENSE
       - README.md
       - CHANGELOG.md
+      - completions/*
 
 checksum:
   name_template: 'checksums.txt'
