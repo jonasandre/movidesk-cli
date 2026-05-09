@@ -10,10 +10,10 @@ movidesk-cli activities update <id> [flags]
 
 ```
   -f, --file string                 path to JSON patch body
-      --from-template string        
-      --from-template-file string   
+      --from-template string        load ~/.movidesk/templates/<name>.json
+      --from-template-file string   load template from a specific path
   -h, --help                        help for update
-      --set strings                 
+      --set strings                 override fields inline, e.g. --set name=Foo
 ```
 
 ### Options inherited from parent commands

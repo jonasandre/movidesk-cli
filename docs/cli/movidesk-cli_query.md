@@ -12,7 +12,7 @@ Examples:
   movidesk-cli query /persons --select id,businessName --top 5
   movidesk-cli query /persons --method GET --param id=abc
 
-Output is always JSON (use jq to slice further).
+Output format follows --output (json|table|csv); use -o json with jq for further slicing.
 
 ```
 movidesk-cli query <path> [flags]

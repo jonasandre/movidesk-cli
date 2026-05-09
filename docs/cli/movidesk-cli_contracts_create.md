@@ -10,11 +10,11 @@ movidesk-cli contracts create [flags]
 
 ```
   -f, --file string                 path to JSON body
-      --from-template string        
-      --from-template-file string   
+      --from-template string        load ~/.movidesk/templates/<name>.json
+      --from-template-file string   load template from a specific path
   -h, --help                        help for create
       --return-all                  ask Movidesk to return the full contract
-      --set strings                 
+      --set strings                 override fields inline, e.g. --set status=2
 ```
 
 ### Options inherited from parent commands

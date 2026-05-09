@@ -9,11 +9,11 @@ movidesk-cli contracts update <id> [flags]
 ### Options
 
 ```
-  -f, --file string                 
-      --from-template string        
-      --from-template-file string   
+  -f, --file string                 path to JSON patch body
+      --from-template string        load ~/.movidesk/templates/<name>.json
+      --from-template-file string   load template from a specific path
   -h, --help                        help for update
-      --set strings                 
+      --set strings                 override fields inline, e.g. --set status=2
 ```
 
 ### Options inherited from parent commands
