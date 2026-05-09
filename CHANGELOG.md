@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] — 2026-05-08
+
+### Security
+
+- HTTP retry is now restricted to safe/idempotent methods (`GET`, `HEAD`,
+  `OPTIONS`). Previously, transient failures on `POST`, `PATCH`, and
+  `DELETE` could be retried automatically, risking duplicate writes
+  (double-created tickets/persons, repeated state changes). Write
+  operations no longer retry; use the explicit helpers or set
+  `--no-retry` to disable retry entirely.
+- Rate limiter no longer rolls back a slot on context cancellation. The
+  previous code popped a stamp that had not actually been reserved (the
+  reservation is taken before the wait), which could let bursts exceed
+  the configured 10 req/min window after a cancelled request.
+
 ## [1.0.0] — 2026-05-08
 
 First public release. Covers every API listed in the Movidesk integration menu.
@@ -99,5 +114,6 @@ First public release. Covers every API listed in the Movidesk integration menu.
   re-emits the response untouched, so even fields the SDK doesn't yet
   type are preserved end-to-end.
 
-[Unreleased]: https://github.com/jonasandre/movidesk-cli/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/jonasandre/movidesk-cli/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/jonasandre/movidesk-cli/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/jonasandre/movidesk-cli/releases/tag/v1.0.0
