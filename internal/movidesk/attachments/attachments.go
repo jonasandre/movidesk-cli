@@ -1,7 +1,8 @@
 // Package attachments uploads files to Movidesk via /ticketFileUpload.
 //
 // Movidesk requires multipart/form-data with two query parameters: the ticket
-// id and the action id. Files are streamed without buffering the whole body.
+// id and the action id. The file contents are buffered in memory before
+// sending; consider chunked streaming for very large files.
 package attachments
 
 import (

@@ -121,9 +121,9 @@ func newContractsCreateCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringVarP(&file, "file", "f", "", "path to JSON body")
-	cmd.Flags().StringVar(&template, "from-template", "", "")
-	cmd.Flags().StringVar(&templateFile, "from-template-file", "", "")
-	cmd.Flags().StringSliceVar(&sets, "set", nil, "")
+	cmd.Flags().StringVar(&template, "from-template", "", "load ~/.movidesk/templates/<name>.json")
+	cmd.Flags().StringVar(&templateFile, "from-template-file", "", "load template from a specific path")
+	cmd.Flags().StringSliceVar(&sets, "set", nil, "override fields inline, e.g. --set status=2")
 	cmd.Flags().BoolVar(&returnAllProperties, "return-all", false, "ask Movidesk to return the full contract")
 	return cmd
 }
@@ -166,10 +166,10 @@ func newContractsUpdateCmd() *cobra.Command {
 			return renderJSON(cmd.OutOrStdout(), raw, r.output, "contracts", nil)
 		},
 	}
-	cmd.Flags().StringVarP(&file, "file", "f", "", "")
-	cmd.Flags().StringVar(&template, "from-template", "", "")
-	cmd.Flags().StringVar(&templateFile, "from-template-file", "", "")
-	cmd.Flags().StringSliceVar(&sets, "set", nil, "")
+	cmd.Flags().StringVarP(&file, "file", "f", "", "path to JSON patch body")
+	cmd.Flags().StringVar(&template, "from-template", "", "load ~/.movidesk/templates/<name>.json")
+	cmd.Flags().StringVar(&templateFile, "from-template-file", "", "load template from a specific path")
+	cmd.Flags().StringSliceVar(&sets, "set", nil, "override fields inline, e.g. --set status=2")
 	return cmd
 }
 

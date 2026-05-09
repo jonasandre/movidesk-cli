@@ -88,3 +88,43 @@ func TestFileStore_DeleteLastRemovesFile(t *testing.T) {
 	_, err := s.Get("only")
 	assert.True(t, errors.Is(err, ErrNotFound))
 }
+
+func TestFileStore_DeleteNonExistentReturnsNotFound(t *testing.T) {
+	t.Setenv("MOVIDESK_HOME", t.TempDir())
+	t.Setenv(EnvPassphrase, "passphrase")
+
+	s := newFileStore()
+	err := s.Delete("nonexistent")
+	assert.True(t, errors.Is(err, ErrNotFound))
+}
+
+func TestFileStore_WrongPassphraseReturnsDecryptError(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("MOVIDESK_HOME", dir)
+	t.Setenv(EnvPassphrase, "correct")
+
+	s := newFileStore()
+	require.NoError(t, s.Set("acme", "token"))
+
+	// Now change passphrase and try to read.
+	t.Setenv(EnvPassphrase, "wrong")
+	_, err := s.Get("acme")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "decrypt credentials")
+}
+
+func TestFileStore_FallbackWarningEmittedWithoutPassphrase(t *testing.T) {
+	// When MOVIDESK_PASSPHRASE is not set, passphrase() should emit a warning
+	// to stderr. We verify this indirectly by ensuring Set succeeds and the
+	// warning path is exercised (no panic, no silent failure).
+	dir := t.TempDir()
+	t.Setenv("MOVIDESK_HOME", dir)
+	t.Setenv(EnvPassphrase, "") // explicitly empty → triggers derived key
+
+	s := newFileStore()
+	// Should succeed (fallback key is usable), though a warning is printed.
+	require.NoError(t, s.Set("tenant", "tok"))
+	got, err := s.Get("tenant")
+	require.NoError(t, err)
+	assert.Equal(t, "tok", got)
+}

@@ -28,6 +28,9 @@ func NewLimiter(capacity int, window time.Duration) *Limiter {
 }
 
 // Wait blocks until a slot is available or ctx is canceled.
+//
+// Note: when ctx is canceled while waiting for a slot, no stamp has been
+// reserved yet, so there is nothing to roll back.
 func (l *Limiter) Wait(ctx context.Context) error {
 	for {
 		wait := l.reserve()
@@ -37,7 +40,6 @@ func (l *Limiter) Wait(ctx context.Context) error {
 		select {
 		case <-time.After(wait):
 		case <-ctx.Done():
-			l.cancel()
 			return ctx.Err()
 		}
 	}
@@ -63,13 +65,4 @@ func (l *Limiter) reserve() time.Duration {
 		return 0
 	}
 	return l.stamps[0].Add(l.window).Sub(now)
-}
-
-// cancel removes the most recently reserved stamp (used when ctx cancels).
-func (l *Limiter) cancel() {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	if n := len(l.stamps); n > 0 {
-		l.stamps = l.stamps[:n-1]
-	}
 }

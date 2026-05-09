@@ -182,5 +182,113 @@ func TestUnauthorized_NotApiError(t *testing.T) {
 	assert.False(t, IsUnauthorized(errors.New("boom")))
 }
 
+func TestDo_PostDoesNotRetryOn5xx(t *testing.T) {
+	var calls int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&calls, 1)
+		w.WriteHeader(503)
+		_, _ = w.Write([]byte(`{"err":"unavailable"}`))
+	}))
+	defer srv.Close()
+
+	c := newTestClient(srv)
+	c.Retry.BaseBackoff = time.Millisecond
+	_, err := c.Post(context.Background(), "/tickets", nil, map[string]any{"subject": "x"})
+	require.Error(t, err)
+	// POST must not retry even on 5xx; exactly one attempt expected.
+	assert.Equal(t, int32(1), calls)
+}
+
+func TestDo_PatchDoesNotRetryOn429(t *testing.T) {
+	var calls int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&calls, 1)
+		w.Header().Set("Retry-After", "0")
+		w.WriteHeader(429)
+	}))
+	defer srv.Close()
+
+	c := newTestClient(srv)
+	c.Retry.BaseBackoff = time.Millisecond
+	_, err := c.Patch(context.Background(), "/tickets/1", nil, map[string]any{"status": 4})
+	require.Error(t, err)
+	// PATCH is not idempotent; must not retry.
+	assert.Equal(t, int32(1), calls)
+}
+
+func TestDo_DeleteDoesNotRetry(t *testing.T) {
+	var calls int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&calls, 1)
+		w.WriteHeader(503)
+	}))
+	defer srv.Close()
+
+	c := newTestClient(srv)
+	c.Retry.BaseBackoff = time.Millisecond
+	_, err := c.Delete(context.Background(), "/tickets/1", nil)
+	require.Error(t, err)
+	assert.Equal(t, int32(1), calls)
+}
+
+func TestDo_GetRetriesTransportError(t *testing.T) {
+	// Simulate a server that closes the connection on the first attempt.
+	var calls int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		n := atomic.AddInt32(&calls, 1)
+		if n == 1 {
+			// Hijack to force a transport-level error on the first attempt.
+			hj, ok := w.(http.Hijacker)
+			if !ok {
+				t.Error("server does not support hijacking")
+				return
+			}
+			conn, _, _ := hj.Hijack()
+			conn.Close()
+			return
+		}
+		w.WriteHeader(200)
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer srv.Close()
+
+	c := newTestClient(srv)
+	c.Retry.BaseBackoff = time.Millisecond
+	body, err := c.Do(context.Background(), "GET", "/tickets", nil, nil)
+	require.NoError(t, err)
+	assert.Contains(t, string(body), "ok")
+	assert.Equal(t, int32(2), calls)
+}
+
+func TestLimiter_CancelledContextDoesNotCorruptStamps(t *testing.T) {
+	// Fill capacity to 2, then cancel a waiter. Existing stamps must not be removed.
+	l := NewLimiter(2, time.Minute)
+	require.NoError(t, l.Wait(context.Background()))
+	require.NoError(t, l.Wait(context.Background()))
+
+	// Now the limiter is full. A waiter with a cancelled context should fail
+	// and leave the two existing stamps intact.
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel() // already cancelled
+	err := l.Wait(ctx)
+	require.ErrorIs(t, err, context.Canceled)
+
+	// The two original stamps must still be there; any further immediate wait
+	// should still need to block (not succeed instantly).
+	wait := l.reserve()
+	assert.Greater(t, wait, time.Duration(0), "stamps should still be present after cancelled wait")
+}
+
+func TestIsSafeMethod(t *testing.T) {
+	assert.True(t, isSafeMethod("GET"))
+	assert.True(t, isSafeMethod("get"))
+	assert.True(t, isSafeMethod("HEAD"))
+	assert.True(t, isSafeMethod("OPTIONS"))
+	assert.False(t, isSafeMethod("POST"))
+	assert.False(t, isSafeMethod("PATCH"))
+	assert.False(t, isSafeMethod("DELETE"))
+	assert.False(t, isSafeMethod("PUT"))
+}
+
 // Compile-time guard so unused imports don't break.
 var _ = strings.Contains

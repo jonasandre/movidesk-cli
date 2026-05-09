@@ -170,9 +170,9 @@ func newActivitiesUpdateCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringVarP(&file, "file", "f", "", "path to JSON patch body")
-	cmd.Flags().StringVar(&template, "from-template", "", "")
-	cmd.Flags().StringVar(&templateFile, "from-template-file", "", "")
-	cmd.Flags().StringSliceVar(&sets, "set", nil, "")
+	cmd.Flags().StringVar(&template, "from-template", "", "load ~/.movidesk/templates/<name>.json")
+	cmd.Flags().StringVar(&templateFile, "from-template-file", "", "load template from a specific path")
+	cmd.Flags().StringSliceVar(&sets, "set", nil, "override fields inline, e.g. --set name=Foo")
 	return cmd
 }
 

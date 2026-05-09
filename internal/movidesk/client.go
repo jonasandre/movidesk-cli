@@ -73,6 +73,11 @@ func IsUnauthorized(err error) bool {
 
 // Do executes a request with rate limiting and retry. The token query param is
 // injected automatically; callers must NOT include it in path/params.
+//
+// Retry is applied only to safe/idempotent methods (GET, HEAD, OPTIONS).
+// POST, PATCH, and DELETE are never retried automatically to avoid duplicate
+// writes; use --no-retry to opt out of all retries, or rely on the explicit
+// helpers for write operations.
 func (c *Client) Do(ctx context.Context, method, path string, params url.Values, body any) ([]byte, error) {
 	var attempt int
 	for {
@@ -84,7 +89,7 @@ func (c *Client) Do(ctx context.Context, method, path string, params url.Values,
 		if err == nil {
 			return data, nil
 		}
-		if c.Retry.Disabled || !c.Retry.ShouldRetry(err, attempt) {
+		if c.Retry.Disabled || !isSafeMethod(method) || !c.Retry.ShouldRetry(err, attempt) {
 			return nil, err
 		}
 		wait := c.Retry.Backoff(attempt, retryAfter)
@@ -94,6 +99,16 @@ func (c *Client) Do(ctx context.Context, method, path string, params url.Values,
 			return nil, ctx.Err()
 		}
 	}
+}
+
+// isSafeMethod reports whether method is idempotent and side-effect-free,
+// making automatic retry safe.
+func isSafeMethod(method string) bool {
+	switch strings.ToUpper(method) {
+	case http.MethodGet, http.MethodHead, http.MethodOptions:
+		return true
+	}
+	return false
 }
 
 func (c *Client) do(ctx context.Context, method, path string, params url.Values, body any) ([]byte, time.Duration, error) {

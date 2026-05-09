@@ -58,6 +58,14 @@ func passphrase() []byte {
 	}
 	// Machine-local fallback: deterministic per user, but file is chmod 0600
 	// and stays on disk. This is a soft fallback for headless Linux.
+	//
+	// Security note: the derived key is predictable — anyone with access to
+	// the user home path can reproduce it. Set MOVIDESK_PASSPHRASE for a
+	// stronger guarantee in headless or shared environments.
+	fmt.Fprintf(os.Stderr,
+		"warning: %s is not set; using a predictable machine-local key for credential encryption. "+
+			"Set %s for stronger security in headless environments.\n",
+		EnvPassphrase, EnvPassphrase)
 	home, _ := os.UserHomeDir()
 	h := sha256.Sum256([]byte("movidesk-cli|" + home))
 	return h[:]
