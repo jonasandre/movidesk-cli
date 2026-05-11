@@ -42,7 +42,7 @@ type Config struct {
 	Tenants       map[string]*Tenant `yaml:"tenants,omitempty"`
 }
 
-var ErrTenantNotFound = errors.New("tenant not found")
+var ErrTenantNotFound = errors.New("tenant não encontrado")
 
 func Dir() (string, error) {
 	if h := os.Getenv(envHome); h != "" {
@@ -73,11 +73,11 @@ func Load() (*Config, error) {
 		if errors.Is(err, os.ErrNotExist) {
 			return &Config{Tenants: map[string]*Tenant{}}, nil
 		}
-		return nil, fmt.Errorf("read config: %w", err)
+		return nil, fmt.Errorf("ler configuração: %w", err)
 	}
 	var c Config
 	if err := yaml.Unmarshal(data, &c); err != nil {
-		return nil, fmt.Errorf("parse config: %w", err)
+		return nil, fmt.Errorf("interpretar configuração: %w", err)
 	}
 	if c.Tenants == nil {
 		c.Tenants = map[string]*Tenant{}
@@ -94,7 +94,7 @@ func (c *Config) Save() error {
 		return err
 	}
 	if err := os.MkdirAll(d, dirMode); err != nil {
-		return fmt.Errorf("create config dir: %w", err)
+		return fmt.Errorf("criar diretório de configuração: %w", err)
 	}
 	p := filepath.Join(d, fileName)
 	data, err := yaml.Marshal(c)
@@ -103,7 +103,7 @@ func (c *Config) Save() error {
 	}
 	tmp := p + ".tmp"
 	if err := os.WriteFile(tmp, data, fileMode); err != nil {
-		return fmt.Errorf("write config: %w", err)
+		return fmt.Errorf("gravar configuração: %w", err)
 	}
 	return os.Rename(tmp, p)
 }
@@ -141,7 +141,7 @@ func (c *Config) Resolve(override string) (*Tenant, error) {
 		name = c.CurrentTenant
 	}
 	if name == "" {
-		return nil, fmt.Errorf("%w: no tenant configured (run `movidesk-cli auth login --tenant <name>`)", ErrTenantNotFound)
+		return nil, fmt.Errorf("%w: nenhum tenant configurado (execute `movidesk-cli auth login --tenant <nome>`)", ErrTenantNotFound)
 	}
 	return c.Get(name)
 }

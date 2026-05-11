@@ -20,7 +20,7 @@ const (
 	EnvToken = "MOVIDESK_TOKEN"
 )
 
-var ErrNotFound = errors.New("token not found")
+var ErrNotFound = errors.New("token não encontrado")
 
 // Store abstracts token storage so tests can inject a fake.
 type Store interface {
@@ -51,14 +51,14 @@ func (s *keyringStore) Get(tenant string) (string, error) {
 	if isKeyringUnavailable(err) {
 		return s.fallback.Get(tenant)
 	}
-	return "", fmt.Errorf("keyring get: %w", err)
+	return "", fmt.Errorf("ler do chaveiro: %w", err)
 }
 
 func (s *keyringStore) Set(tenant, token string) error {
 	if err := keyring.Set(Service, tenant, token); err == nil {
 		return nil
 	} else if !isKeyringUnavailable(err) {
-		return fmt.Errorf("keyring set: %w", err)
+		return fmt.Errorf("gravar no chaveiro: %w", err)
 	}
 	return s.fallback.Set(tenant, token)
 }
@@ -76,7 +76,7 @@ func (s *keyringStore) Delete(tenant string) error {
 	if isKeyringUnavailable(err) {
 		return s.fallback.Delete(tenant)
 	}
-	return fmt.Errorf("keyring delete: %w", err)
+	return fmt.Errorf("excluir do chaveiro: %w", err)
 }
 
 // isKeyringUnavailable returns true when the OS keychain backend is missing

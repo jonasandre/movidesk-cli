@@ -20,7 +20,7 @@ func renderJSON(w io.Writer, raw []byte, format, resource string, columns []stri
 	}
 	var v any
 	if err := json.Unmarshal(raw, &v); err != nil {
-		return fmt.Errorf("decode response: %w", err)
+		return fmt.Errorf("decodificar resposta: %w", err)
 	}
 	opts := output.Options{
 		Compact:  flags.compact,
@@ -57,11 +57,11 @@ func renderRows(w io.Writer, rows any, format, resource string, columns []string
 func normalize(v any) (any, error) {
 	raw, err := json.Marshal(v)
 	if err != nil {
-		return nil, fmt.Errorf("normalize: %w", err)
+		return nil, fmt.Errorf("normalizar: %w", err)
 	}
 	var out any
 	if err := json.Unmarshal(raw, &out); err != nil {
-		return nil, fmt.Errorf("normalize: %w", err)
+		return nil, fmt.Errorf("normalizar: %w", err)
 	}
 	return out, nil
 }

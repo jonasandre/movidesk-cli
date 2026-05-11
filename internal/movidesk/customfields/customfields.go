@@ -45,10 +45,10 @@ func New(c *movidesk.Client) *API { return &API{C: c} }
 // AddOptions inserts new option names into a list-type custom field's pool.
 func (a *API) AddOptions(ctx context.Context, customFieldID string, names []string) ([]byte, error) {
 	if customFieldID == "" {
-		return nil, errors.New("customFieldID is required")
+		return nil, errors.New("customFieldID é obrigatório")
 	}
 	if len(names) == 0 {
-		return nil, errors.New("at least one option name is required")
+		return nil, errors.New("pelo menos um nome de opção é obrigatório")
 	}
 	return a.C.Post(ctx, pathInsert, nil, InsertBody{CustomFieldID: customFieldID, CustomFieldValues: names})
 }
@@ -56,10 +56,10 @@ func (a *API) AddOptions(ctx context.Context, customFieldID string, names []stri
 // RenameOptions renames existing option names. Each pair: {oldname, newname}.
 func (a *API) RenameOptions(ctx context.Context, customFieldID string, pairs []UpdatePair) ([]byte, error) {
 	if customFieldID == "" {
-		return nil, errors.New("customFieldID is required")
+		return nil, errors.New("customFieldID é obrigatório")
 	}
 	if len(pairs) == 0 {
-		return nil, errors.New("at least one pair is required")
+		return nil, errors.New("pelo menos um par é obrigatório")
 	}
 	return a.C.Post(ctx, pathUpdate, nil, UpdateBody{CustomFieldID: customFieldID, CustomFieldValues: pairs})
 }
@@ -67,10 +67,10 @@ func (a *API) RenameOptions(ctx context.Context, customFieldID string, pairs []U
 // RemoveOptions deletes option names from a list-type custom field's pool.
 func (a *API) RemoveOptions(ctx context.Context, customFieldID string, names []string) ([]byte, error) {
 	if customFieldID == "" {
-		return nil, errors.New("customFieldID is required")
+		return nil, errors.New("customFieldID é obrigatório")
 	}
 	if len(names) == 0 {
-		return nil, errors.New("at least one option name is required")
+		return nil, errors.New("pelo menos um nome de opção é obrigatório")
 	}
 	return a.C.Post(ctx, pathDelete, nil, InsertBody{CustomFieldID: customFieldID, CustomFieldValues: names})
 }

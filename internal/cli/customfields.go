@@ -13,12 +13,12 @@ import (
 func newCustomFieldsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "customfields",
-		Short: "Manage list-type custom field option pools (tenant-wide)",
-		Long: `These commands wrap the /ticketCustomFieldValue/{InsertValues,UpdateValues,DeleteValues}
-endpoints, which manage the OPTION POOL of list-type custom fields — the set
-of values agents can pick from in the dropdown.
+		Short: "Gerencia o conjunto de opções de campos personalizados do tipo lista (por tenant)",
+		Long: `Estes comandos encapsulam os endpoints /ticketCustomFieldValue/{InsertValues,UpdateValues,DeleteValues},
+que gerenciam o CONJUNTO DE OPÇÕES dos campos personalizados do tipo lista —
+os valores que aparecem no dropdown pros agentes selecionarem.
 
-To set a value on a SPECIFIC ticket or person, use:
+Pra definir um valor em um CHAMADO ou PESSOA específica, use:
   tickets customfields set ...
   persons customfields set ...
 `,
@@ -28,7 +28,7 @@ To set a value on a SPECIFIC ticket or person, use:
 }
 
 func newCustomFieldsOptionsCmd() *cobra.Command {
-	cmd := &cobra.Command{Use: "options", Short: "Add/rename/remove option-pool values"}
+	cmd := &cobra.Command{Use: "options", Short: "Adiciona/renomeia/remove valores do conjunto de opções"}
 	cmd.AddCommand(
 		newCustomFieldsOptionsAddCmd(),
 		newCustomFieldsOptionsRenameCmd(),
@@ -44,10 +44,10 @@ func newCustomFieldsOptionsAddCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "add",
-		Short: "Insert option values into a list-type field's pool",
+		Short: "Insere valores de opção no conjunto de um campo tipo lista",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if fieldID == "" || len(values) == 0 {
-				return errors.New("--field and --value (repeatable) are required")
+				return errors.New("--field e --value (repetível) são obrigatórios")
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -60,8 +60,8 @@ func newCustomFieldsOptionsAddCmd() *cobra.Command {
 			return renderJSON(cmd.OutOrStdout(), raw, r.output, "", nil)
 		},
 	}
-	cmd.Flags().StringVar(&fieldID, "field", "", "numeric customFieldId (required)")
-	cmd.Flags().StringSliceVar(&values, "value", nil, "option value (repeatable)")
+	cmd.Flags().StringVar(&fieldID, "field", "", "customFieldId numérico (obrigatório)")
+	cmd.Flags().StringSliceVar(&values, "value", nil, "valor de opção (repetível)")
 	return cmd
 }
 
@@ -72,16 +72,16 @@ func newCustomFieldsOptionsRenameCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "rename",
-		Short: "Rename existing option values via --pair OLD=NEW (repeatable)",
+		Short: "Renomeia valores existentes via --pair ANTIGO=NOVO (repetível)",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if fieldID == "" || len(pairs) == 0 {
-				return errors.New("--field and --pair (repeatable) are required")
+				return errors.New("--field e --pair (repetível) são obrigatórios")
 			}
 			parsed := make([]customfields.UpdatePair, 0, len(pairs))
 			for _, p := range pairs {
 				old, neu, ok := strings.Cut(p, "=")
 				if !ok {
-					return fmt.Errorf("--pair must be OLD=NEW, got %q", p)
+					return fmt.Errorf("--pair deve ser ANTIGO=NOVO, recebido %q", p)
 				}
 				parsed = append(parsed, customfields.UpdatePair{OldName: old, NewName: neu})
 			}
@@ -96,8 +96,8 @@ func newCustomFieldsOptionsRenameCmd() *cobra.Command {
 			return renderJSON(cmd.OutOrStdout(), raw, r.output, "", nil)
 		},
 	}
-	cmd.Flags().StringVar(&fieldID, "field", "", "numeric customFieldId (required)")
-	cmd.Flags().StringSliceVar(&pairs, "pair", nil, "OLD=NEW (repeatable)")
+	cmd.Flags().StringVar(&fieldID, "field", "", "customFieldId numérico (obrigatório)")
+	cmd.Flags().StringSliceVar(&pairs, "pair", nil, "ANTIGO=NOVO (repetível)")
 	return cmd
 }
 
@@ -108,10 +108,10 @@ func newCustomFieldsOptionsRemoveCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "remove",
-		Short: "Remove option values from a list-type field's pool",
+		Short: "Remove valores de opção do conjunto de um campo tipo lista",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if fieldID == "" || len(values) == 0 {
-				return errors.New("--field and --value (repeatable) are required")
+				return errors.New("--field e --value (repetível) são obrigatórios")
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -124,7 +124,7 @@ func newCustomFieldsOptionsRemoveCmd() *cobra.Command {
 			return renderJSON(cmd.OutOrStdout(), raw, r.output, "", nil)
 		},
 	}
-	cmd.Flags().StringVar(&fieldID, "field", "", "numeric customFieldId (required)")
-	cmd.Flags().StringSliceVar(&values, "value", nil, "option value (repeatable)")
+	cmd.Flags().StringVar(&fieldID, "field", "", "customFieldId numérico (obrigatório)")
+	cmd.Flags().StringSliceVar(&values, "value", nil, "valor de opção (repetível)")
 	return cmd
 }

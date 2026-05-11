@@ -1,6 +1,6 @@
 ## movidesk-cli surveys questions list
 
-List survey questions
+Lista perguntas de pesquisas
 
 ```
 movidesk-cli surveys questions list [flags]
@@ -9,24 +9,24 @@ movidesk-cli surveys questions list [flags]
 ### Options
 
 ```
-      --columns strings   comma-separated columns for table/csv output (dot-paths supported)
+      --columns strings   colunas separadas por vírgula para saída table/csv (suporta dot-paths)
   -h, --help              help for list
-      --type int          filter by question type (1=satisf, 2=faces, 3=NPS, 4=yes/no)
+      --type int          filtra por tipo da pergunta (1=satisfação, 2=carinhas, 3=NPS, 4=sim/não)
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --compact         compact JSON output (no indentation)
-      --no-color        disable colored output
-      --no-retry        disable automatic retry on 429/5xx
-  -o, --output string   output format: json|table|csv (default: tenant or 'json')
-      --tenant string   tenant name (overrides current tenant; env: MOVIDESK_TENANT)
-      --user string     default user id (Cod. Ref.) for createdBy on writes; overrides tenant config; env: MOVIDESK_USER
-  -v, --verbose         verbose logging to stderr
+      --compact         JSON compacto (sem indentação)
+      --no-color        desativa cores na saída
+      --no-retry        desativa retentativa automática em 429/5xx
+  -o, --output string   formato de saída: json|table|csv (padrão: do tenant ou 'json')
+      --tenant string   nome do tenant (sobrepõe o tenant atual; env: MOVIDESK_TENANT)
+      --user string     id do usuário padrão (Cod. Ref.) usado em createdBy nas escritas; sobrepõe a configuração do tenant; env: MOVIDESK_USER
+  -v, --verbose         log detalhado em stderr
 ```
 
 ### SEE ALSO
 
-* [movidesk-cli surveys questions](movidesk-cli_surveys_questions.md)	 - Survey questions
+* [movidesk-cli surveys questions](movidesk-cli_surveys_questions.md)	 - Perguntas de pesquisas
 

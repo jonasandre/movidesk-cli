@@ -19,16 +19,16 @@ func newQueryCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "query <path>",
-		Short: "Raw HTTP call against any Movidesk endpoint",
-		Long: `Raw escape hatch. Path is relative to the API base, e.g. "tickets",
-"/tickets", "/persons". Token is injected automatically.
+		Short: "Chamada HTTP bruta contra qualquer endpoint do Movidesk",
+		Long: `Escape hatch genérico. O caminho é relativo à base da API, ex.: "tickets",
+"/tickets", "/persons". O token é injetado automaticamente.
 
-Examples:
+Exemplos:
   movidesk-cli query /tickets --filter "id eq 1"
   movidesk-cli query /persons --select id,businessName --top 5
   movidesk-cli query /persons --method GET --param id=abc
 
-Output format follows --output (json|table|csv); use -o json with jq for further slicing.`,
+O formato de saída segue --output (json|table|csv); use -o json com jq pra fatiar mais.`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			r, err := resolveClient(cmd)
@@ -45,7 +45,7 @@ Output format follows --output (json|table|csv); use -o json with jq for further
 			for _, kv := range params {
 				k, val, ok := strings.Cut(kv, "=")
 				if !ok {
-					return fmt.Errorf("--param must be key=value, got %q", kv)
+					return fmt.Errorf("--param deve ser chave=valor, recebido %q", kv)
 				}
 				v.Set(k, val)
 			}
@@ -57,15 +57,15 @@ Output format follows --output (json|table|csv); use -o json with jq for further
 			switch method {
 			case "GET", "POST", "PATCH", "DELETE":
 			default:
-				return fmt.Errorf("unsupported method %q (allowed: GET, POST, PATCH, DELETE)", method)
+				return fmt.Errorf("método não suportado %q (permitidos: GET, POST, PATCH, DELETE)", method)
 			}
 			if method != "GET" && method != "DELETE" {
-				return errors.New("query only supports GET/DELETE; use the typed subcommand for write operations")
+				return errors.New("query só suporta GET/DELETE; use o subcomando tipado pra escritas")
 			}
 
 			if of.all {
 				if method != "GET" {
-					return errors.New("--all only works with GET")
+					return errors.New("--all só funciona com GET")
 				}
 				q := of.query()
 				if q.Top == 0 {
@@ -86,7 +86,7 @@ Output format follows --output (json|table|csv); use -o json with jq for further
 		},
 	}
 	of.bind(cmd)
-	cmd.Flags().StringVar(&method, "method", "GET", "HTTP method (GET or DELETE only)")
-	cmd.Flags().StringSliceVar(&params, "param", nil, "extra query param key=value (repeatable)")
+	cmd.Flags().StringVar(&method, "method", "GET", "método HTTP (apenas GET ou DELETE)")
+	cmd.Flags().StringSliceVar(&params, "param", nil, "query param extra chave=valor (repetível)")
 	return cmd
 }

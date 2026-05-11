@@ -12,7 +12,6 @@ linters:
     - ineffassign
     - staticcheck
     - unused
-    - misspell
   exclusions:
     rules:
       - path: _test\.go
@@ -25,10 +24,6 @@ linters:
       - linters: [errcheck]
         text: 'Error return value of `fmt\.(Fprintln|Fprintf|Fprint)` is not checked'
   settings:
-    misspell:
-      ignore-rules:
-        - suspenso
-        - relateds
 
 formatters:
   enable:

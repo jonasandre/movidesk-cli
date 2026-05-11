@@ -76,7 +76,7 @@ func (s *Service) ListCustomFieldValues(ctx context.Context, id string) ([]Custo
 	}
 	var p Person
 	if err := json.Unmarshal(body, &p); err != nil {
-		return nil, fmt.Errorf("decode person: %w", err)
+		return nil, fmt.Errorf("decodificar pessoa: %w", err)
 	}
 	return p.CustomFieldValues, nil
 }
@@ -86,17 +86,17 @@ func (s *Service) ListCustomFieldValues(ctx context.Context, id string) ([]Custo
 // behavior — entries omitted from the body are deleted server-side.
 func (s *Service) SetCustomFieldValue(ctx context.Context, id string, change CustomFieldValue) ([]byte, error) {
 	if change.CustomFieldID == 0 {
-		return nil, errors.New("CustomFieldID is required")
+		return nil, errors.New("CustomFieldID é obrigatório")
 	}
 	if change.CustomFieldRuleID == 0 {
-		return nil, errors.New("CustomFieldRuleID is required")
+		return nil, errors.New("CustomFieldRuleID é obrigatório")
 	}
 	if change.Line == 0 {
 		change.Line = 1
 	}
 	current, err := s.ListCustomFieldValues(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("read customFieldValues: %w", err)
+		return nil, fmt.Errorf("ler customFieldValues: %w", err)
 	}
 	merged := mergeCustomFields(current, change)
 	body := map[string]any{"customFieldValues": stripExtra(merged)}
@@ -107,11 +107,11 @@ func (s *Service) SetCustomFieldValue(ctx context.Context, id string, change Cus
 // If line == 0, every line for that (fieldID, ruleID) is removed.
 func (s *Service) ClearCustomFieldValue(ctx context.Context, id string, fieldID, ruleID, line int) ([]byte, error) {
 	if fieldID == 0 {
-		return nil, errors.New("fieldID is required")
+		return nil, errors.New("fieldID é obrigatório")
 	}
 	current, err := s.ListCustomFieldValues(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("read customFieldValues: %w", err)
+		return nil, fmt.Errorf("ler customFieldValues: %w", err)
 	}
 	kept := make([]CustomFieldValue, 0, len(current))
 	for _, v := range current {

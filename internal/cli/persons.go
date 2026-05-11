@@ -12,15 +12,15 @@ import (
 func newPersonsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "persons",
-		Short: "Manage Movidesk persons (/persons)",
-		Long: `Manage Movidesk persons. The /persons endpoint serves agents,
-clients, companies, and departments — disambiguated by personType
-(1=Pessoa, 2=Empresa, 4=Departamento) and profileType (1=Agente, 2=Cliente,
-3=Both).
+		Short: "Gerencia pessoas do Movidesk (/persons)",
+		Long: `Gerencia pessoas do Movidesk. O endpoint /persons serve agentes,
+clientes, empresas e departamentos — diferenciados por personType
+(1=Pessoa, 2=Empresa, 4=Departamento) e profileType (1=Agente, 2=Cliente,
+3=Ambos).
 
-OData filters and projection apply on list. Custom field values follow the
-same read-merge-patch semantics as tickets to avoid Movidesk's "delete
-missing entries" trap.`,
+Filtros e projeções OData aplicam-se em list. Os valores de campos
+personalizados seguem o mesmo read-merge-patch dos chamados para evitar
+a armadilha "apaga entradas ausentes" do Movidesk.`,
 	}
 	cmd.AddCommand(
 		newPersonsListCmd(),
@@ -40,7 +40,7 @@ func newPersonsListCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List persons",
+		Short: "Lista pessoas",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -75,7 +75,7 @@ func newPersonsGetCmd() *cobra.Command {
 	var cf columnsFlag
 	cmd := &cobra.Command{
 		Use:   "get <id>",
-		Short: "Get one person by id (Cod. Ref.)",
+		Short: "Obtém uma pessoa pelo id (Cod. Ref.)",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			r, err := resolveClient(cmd)
@@ -103,14 +103,14 @@ func newPersonsCreateCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "create",
-		Short: "Create a person from a JSON body, template, or --set overrides",
+		Short: "Cria uma pessoa a partir de corpo JSON, template ou substituições --set",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			body, err := loadBody(file, template, templateFile, sets)
 			if err != nil {
 				return err
 			}
 			if len(body) == 0 {
-				return errors.New("no body fields supplied; pass --file, --from-template[-file], or --set key=value")
+				return errors.New("nenhum campo informado; passe --file, --from-template[-file] ou --set chave=valor")
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -123,11 +123,11 @@ func newPersonsCreateCmd() *cobra.Command {
 			return renderJSON(cmd.OutOrStdout(), raw, r.output, "persons", nil)
 		},
 	}
-	cmd.Flags().StringVarP(&file, "file", "f", "", "path to JSON body")
-	cmd.Flags().StringVar(&template, "from-template", "", "load ~/.movidesk/templates/<name>.json")
-	cmd.Flags().StringVar(&templateFile, "from-template-file", "", "load template from a specific path")
-	cmd.Flags().StringSliceVar(&sets, "set", nil, "override fields, e.g. --set personType=1 --set businessName=\"Joe\"")
-	cmd.Flags().BoolVar(&returnAllProperties, "return-all", false, "ask Movidesk to return the full person")
+	cmd.Flags().StringVarP(&file, "file", "f", "", "caminho do corpo JSON")
+	cmd.Flags().StringVar(&template, "from-template", "", "carrega ~/.movidesk/templates/<nome>.json")
+	cmd.Flags().StringVar(&templateFile, "from-template-file", "", "carrega template de um caminho específico")
+	cmd.Flags().StringSliceVar(&sets, "set", nil, "sobrescreve campos, ex.: --set personType=1 --set businessName=\"Joe\"")
+	cmd.Flags().BoolVar(&returnAllProperties, "return-all", false, "pede ao Movidesk pra retornar a pessoa completa")
 	return cmd
 }
 
@@ -140,7 +140,7 @@ func newPersonsUpdateCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "update <id>",
-		Short: "Patch a person by id",
+		Short: "Aplica patch em uma pessoa por id",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			body, err := loadBody(file, template, templateFile, sets)
@@ -148,7 +148,7 @@ func newPersonsUpdateCmd() *cobra.Command {
 				return err
 			}
 			if len(body) == 0 {
-				return errors.New("no fields to update; pass --file, --from-template[-file], or --set key=value")
+				return errors.New("nenhum campo para atualizar; passe --file, --from-template[-file] ou --set chave=valor")
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -165,10 +165,10 @@ func newPersonsUpdateCmd() *cobra.Command {
 			return renderJSON(cmd.OutOrStdout(), raw, r.output, "persons", nil)
 		},
 	}
-	cmd.Flags().StringVarP(&file, "file", "f", "", "path to JSON patch body")
-	cmd.Flags().StringVar(&template, "from-template", "", "load ~/.movidesk/templates/<name>.json")
-	cmd.Flags().StringVar(&templateFile, "from-template-file", "", "load template from a specific path")
-	cmd.Flags().StringSliceVar(&sets, "set", nil, "override fields inline")
+	cmd.Flags().StringVarP(&file, "file", "f", "", "caminho do corpo JSON de patch")
+	cmd.Flags().StringVar(&template, "from-template", "", "carrega ~/.movidesk/templates/<nome>.json")
+	cmd.Flags().StringVar(&templateFile, "from-template-file", "", "carrega template de um caminho específico")
+	cmd.Flags().StringSliceVar(&sets, "set", nil, "sobrescreve campos inline")
 	return cmd
 }
 
@@ -176,11 +176,11 @@ func newPersonsDeleteCmd() *cobra.Command {
 	var force bool
 	cmd := &cobra.Command{
 		Use:   "delete <id>",
-		Short: "Permanently delete a person (DELETE /persons?id=)",
+		Short: "Exclui uma pessoa de forma permanente (DELETE /persons?id=)",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if !force {
-				if err := confirm(cmd, fmt.Sprintf("Delete person %q? This cannot be undone.", args[0])); err != nil {
+				if err := confirm(cmd, fmt.Sprintf("Excluir a pessoa %q? Esta ação é irreversível.", args[0])); err != nil {
 					return err
 				}
 			}
@@ -195,7 +195,7 @@ func newPersonsDeleteCmd() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().BoolVar(&force, "force", false, "skip confirmation prompt")
+	cmd.Flags().BoolVar(&force, "force", false, "pula o prompt de confirmação")
 	return cmd
 }
 
@@ -203,7 +203,7 @@ func newPersonsCustomFieldsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "customfields",
 		Aliases: []string{"cf"},
-		Short:   "Read and write person custom fields (read-merge-patch)",
+		Short:   "Lê e escreve campos personalizados de pessoa (read-merge-patch)",
 	}
 	cmd.AddCommand(
 		newPersonsCFShowCmd(),
@@ -217,7 +217,7 @@ func newPersonsCFShowCmd() *cobra.Command {
 	var cf columnsFlag
 	cmd := &cobra.Command{
 		Use:   "show <person-id>",
-		Short: "List a person's customFieldValues",
+		Short: "Lista os customFieldValues de uma pessoa",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			r, err := resolveClient(cmd)
@@ -264,7 +264,7 @@ func newPersonsCFSetCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "set <person-id>",
-		Short: "Set a person custom field value (read-merge-patch)",
+		Short: "Define o valor de um campo personalizado de pessoa (read-merge-patch)",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			r, err := resolveClient(cmd)
@@ -299,7 +299,7 @@ func newPersonsCFSetCmd() *cobra.Command {
 				cfv.Items = append(cfv.Items, persons.CustomFieldItem{Team: tm})
 			}
 			if cfv.Value == "" && len(cfv.Items) == 0 {
-				return errors.New("provide --value, --item, --item-person, --item-client or --item-team")
+				return errors.New("informe --value, --item, --item-person, --item-client ou --item-team")
 			}
 			raw, err := persons.New(r.client).SetCustomFieldValue(cmd.Context(), args[0], cfv)
 			if err != nil {
@@ -312,15 +312,15 @@ func newPersonsCFSetCmd() *cobra.Command {
 			return renderJSON(cmd.OutOrStdout(), raw, r.output, "persons", nil)
 		},
 	}
-	cmd.Flags().IntVar(&fieldID, "field", 0, "numeric custom field id (or use --field-label)")
-	cmd.Flags().StringVar(&fieldLabel, "field-label", "", "label registered in the catalog")
-	cmd.Flags().IntVar(&ruleID, "rule", 0, "rule id (taken from catalog if omitted)")
-	cmd.Flags().IntVar(&line, "line", 0, "row number (default 1)")
-	cmd.Flags().StringVar(&value, "value", "", "value for text/numeric/date types")
-	cmd.Flags().StringSliceVar(&items, "item", nil, "list-of-values item label (repeatable)")
-	cmd.Flags().StringSliceVar(&itemPersons, "item-person", nil, "person id (repeatable)")
-	cmd.Flags().StringSliceVar(&itemClients, "item-client", nil, "client id (repeatable)")
-	cmd.Flags().StringSliceVar(&itemTeams, "item-team", nil, "team name (repeatable)")
+	cmd.Flags().IntVar(&fieldID, "field", 0, "id numérico do campo personalizado (ou use --field-label)")
+	cmd.Flags().StringVar(&fieldLabel, "field-label", "", "rótulo registrado no catálogo")
+	cmd.Flags().IntVar(&ruleID, "rule", 0, "id da regra (vem do catálogo se omitido)")
+	cmd.Flags().IntVar(&line, "line", 0, "número da linha (padrão 1)")
+	cmd.Flags().StringVar(&value, "value", "", "valor para tipos texto/numérico/data")
+	cmd.Flags().StringSliceVar(&items, "item", nil, "rótulo de item da lista de valores (repetível)")
+	cmd.Flags().StringSliceVar(&itemPersons, "item-person", nil, "id da pessoa (repetível)")
+	cmd.Flags().StringSliceVar(&itemClients, "item-client", nil, "id do cliente (repetível)")
+	cmd.Flags().StringSliceVar(&itemTeams, "item-team", nil, "nome da equipe (repetível)")
 	return cmd
 }
 
@@ -333,7 +333,7 @@ func newPersonsCFClearCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "clear <person-id>",
-		Short: "Remove a person custom field value (read-merge-patch)",
+		Short: "Remove o valor de um campo personalizado de pessoa (read-merge-patch)",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			r, err := resolveClient(cmd)
@@ -356,10 +356,10 @@ func newPersonsCFClearCmd() *cobra.Command {
 			return renderJSON(cmd.OutOrStdout(), raw, r.output, "persons", nil)
 		},
 	}
-	cmd.Flags().IntVar(&fieldID, "field", 0, "numeric custom field id")
-	cmd.Flags().StringVar(&fieldLabel, "field-label", "", "label from the catalog")
-	cmd.Flags().IntVar(&ruleID, "rule", 0, "rule id (omit with catalog)")
-	cmd.Flags().IntVar(&line, "line", 0, "specific line; omit to clear every line")
+	cmd.Flags().IntVar(&fieldID, "field", 0, "id numérico do campo personalizado")
+	cmd.Flags().StringVar(&fieldLabel, "field-label", "", "rótulo do catálogo")
+	cmd.Flags().IntVar(&ruleID, "rule", 0, "id da regra (omita se usar catálogo)")
+	cmd.Flags().IntVar(&line, "line", 0, "linha específica; omita para limpar todas")
 	return cmd
 }
 

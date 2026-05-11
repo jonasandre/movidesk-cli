@@ -1,21 +1,21 @@
 ## movidesk-cli auth login
 
-Add or update a tenant and store its API token
+Adiciona ou atualiza um tenant e armazena seu token de API
 
 ### Synopsis
 
-Add or update a Movidesk tenant. The token is read from a hidden prompt
-(or stdin when not a TTY) and saved to the OS keychain when available, otherwise
-to an encrypted file under ~/.movidesk.
+Adiciona ou atualiza um tenant do Movidesk. O token é lido de um prompt
+oculto (ou da stdin quando não há TTY) e salvo no chaveiro do sistema operacional
+quando disponível; caso contrário, em arquivo criptografado em ~/.movidesk.
 
-By default, login validates the token by issuing GET /persons?$top=1 against
-the configured base URL. Use --skip-verify to bypass.
+Por padrão, login valida o token fazendo GET /persons?$top=1 contra a base URL
+configurada. Use --skip-verify para pular essa verificação.
 
-After validating the token, login optionally prompts for a default user
-(Cod. Ref.) that will be auto-injected as createdBy on writes that need
-attribution. Pass --user <id> to set it non-interactively, or skip the prompt
-by leaving the answer empty. Use --skip-verify-user to skip the existence
-check (handy when the token's permissions can't read the persons API).
+Após validar o token, login pode solicitar interativamente um usuário padrão
+(Cod. Ref.) que será injetado automaticamente como createdBy nas escritas que
+exigem atribuição. Passe --user <id> para definir sem prompt, ou deixe vazio
+para pular. Use --skip-verify-user para pular a checagem de existência (útil
+quando o token não tem permissão de ler a API de pessoas).
 
 ```
 movidesk-cli auth login [flags]
@@ -24,27 +24,27 @@ movidesk-cli auth login [flags]
 ### Options
 
 ```
-      --base-url string    override API base URL (sandbox)
+      --base-url string    sobrepõe a base URL da API (sandbox)
   -h, --help               help for login
-      --label string       human label, e.g. "Acme Prod"
-      --make-default       set this tenant as the current one
-      --skip-verify        do not validate the token against the API
-      --skip-verify-user   skip existence check on the default user
-      --tenant string      tenant name (required)
+      --label string       rótulo legível, ex.: "Acme Prod"
+      --make-default       define este tenant como o atual
+      --skip-verify        não valida o token contra a API
+      --skip-verify-user   pula a checagem de existência do usuário padrão
+      --tenant string      nome do tenant (obrigatório)
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --compact         compact JSON output (no indentation)
-      --no-color        disable colored output
-      --no-retry        disable automatic retry on 429/5xx
-  -o, --output string   output format: json|table|csv (default: tenant or 'json')
-      --user string     default user id (Cod. Ref.) for createdBy on writes; overrides tenant config; env: MOVIDESK_USER
-  -v, --verbose         verbose logging to stderr
+      --compact         JSON compacto (sem indentação)
+      --no-color        desativa cores na saída
+      --no-retry        desativa retentativa automática em 429/5xx
+  -o, --output string   formato de saída: json|table|csv (padrão: do tenant ou 'json')
+      --user string     id do usuário padrão (Cod. Ref.) usado em createdBy nas escritas; sobrepõe a configuração do tenant; env: MOVIDESK_USER
+  -v, --verbose         log detalhado em stderr
 ```
 
 ### SEE ALSO
 
-* [movidesk-cli auth](movidesk-cli_auth.md)	 - Manage Movidesk tokens and tenants
+* [movidesk-cli auth](movidesk-cli_auth.md)	 - Gerencia tokens e tenants do Movidesk
 

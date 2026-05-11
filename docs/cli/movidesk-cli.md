@@ -1,39 +1,39 @@
 ## movidesk-cli
 
-CLI for the Movidesk REST API
+CLI para a API REST do Movidesk
 
 ### Synopsis
 
-movidesk-cli is a command-line interface for the Movidesk REST API.
+movidesk-cli é uma interface de linha de comando para a API REST do Movidesk.
 
-It supports multiple tenants (each with its own token stored in the OS keychain),
-formats output as JSON, table or CSV, and respects Movidesk's rate limit of
-10 requests per minute with automatic retry on 429.
+Suporta múltiplos tenants (cada um com seu próprio token armazenado no chaveiro
+do sistema operacional), formata a saída como JSON, tabela ou CSV, e respeita o
+limite de 10 requisições por minuto do Movidesk com retentativa automática em 429.
 
 ### Options
 
 ```
-      --compact         compact JSON output (no indentation)
+      --compact         JSON compacto (sem indentação)
   -h, --help            help for movidesk-cli
-      --no-color        disable colored output
-      --no-retry        disable automatic retry on 429/5xx
-  -o, --output string   output format: json|table|csv (default: tenant or 'json')
-      --tenant string   tenant name (overrides current tenant; env: MOVIDESK_TENANT)
-      --user string     default user id (Cod. Ref.) for createdBy on writes; overrides tenant config; env: MOVIDESK_USER
-  -v, --verbose         verbose logging to stderr
+      --no-color        desativa cores na saída
+      --no-retry        desativa retentativa automática em 429/5xx
+  -o, --output string   formato de saída: json|table|csv (padrão: do tenant ou 'json')
+      --tenant string   nome do tenant (sobrepõe o tenant atual; env: MOVIDESK_TENANT)
+      --user string     id do usuário padrão (Cod. Ref.) usado em createdBy nas escritas; sobrepõe a configuração do tenant; env: MOVIDESK_USER
+  -v, --verbose         log detalhado em stderr
 ```
 
 ### SEE ALSO
 
-* [movidesk-cli activities](movidesk-cli_activities.md)	 - Manage Movidesk activities (/activity)
-* [movidesk-cli auth](movidesk-cli_auth.md)	 - Manage Movidesk tokens and tenants
-* [movidesk-cli contracts](movidesk-cli_contracts.md)	 - Manage Movidesk hour contracts (/timeAgreement)
-* [movidesk-cli customfields](movidesk-cli_customfields.md)	 - Manage list-type custom field option pools (tenant-wide)
-* [movidesk-cli kb](movidesk-cli_kb.md)	 - Read Movidesk knowledge base articles (/article/:id)
-* [movidesk-cli persons](movidesk-cli_persons.md)	 - Manage Movidesk persons (/persons)
-* [movidesk-cli query](movidesk-cli_query.md)	 - Raw HTTP call against any Movidesk endpoint
-* [movidesk-cli services](movidesk-cli_services.md)	 - Manage Movidesk service catalog (/services)
-* [movidesk-cli surveys](movidesk-cli_surveys.md)	 - Read Movidesk satisfaction survey data (/survey/...)
-* [movidesk-cli telephony](movidesk-cli_telephony.md)	 - Dispatch Movidesk call events (asterisk_*)
-* [movidesk-cli tickets](movidesk-cli_tickets.md)	 - Manage Movidesk tickets
+* [movidesk-cli activities](movidesk-cli_activities.md)	 - Gerencia atividades do Movidesk (/activity)
+* [movidesk-cli auth](movidesk-cli_auth.md)	 - Gerencia tokens e tenants do Movidesk
+* [movidesk-cli contracts](movidesk-cli_contracts.md)	 - Gerencia contratos de horas do Movidesk (/timeAgreement)
+* [movidesk-cli customfields](movidesk-cli_customfields.md)	 - Gerencia o conjunto de opções de campos personalizados do tipo lista (por tenant)
+* [movidesk-cli kb](movidesk-cli_kb.md)	 - Lê artigos da base de conhecimento do Movidesk (/article/:id)
+* [movidesk-cli persons](movidesk-cli_persons.md)	 - Gerencia pessoas do Movidesk (/persons)
+* [movidesk-cli query](movidesk-cli_query.md)	 - Chamada HTTP bruta contra qualquer endpoint do Movidesk
+* [movidesk-cli services](movidesk-cli_services.md)	 - Gerencia o catálogo de serviços do Movidesk (/services)
+* [movidesk-cli surveys](movidesk-cli_surveys.md)	 - Lê dados de pesquisas de satisfação do Movidesk (/survey/...)
+* [movidesk-cli telephony](movidesk-cli_telephony.md)	 - Dispara eventos de chamada do Movidesk (asterisk_*)
+* [movidesk-cli tickets](movidesk-cli_tickets.md)	 - Gerencia chamados (tickets) do Movidesk
 

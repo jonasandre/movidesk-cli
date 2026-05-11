@@ -92,7 +92,7 @@ func (s *Service) ListPage(ctx context.Context, limit int, startingAfter, nameFi
 	}
 	var p Page
 	if err := json.Unmarshal(body, &p); err != nil {
-		return nil, fmt.Errorf("decode activity page: %w", err)
+		return nil, fmt.Errorf("decodificar página de atividades: %w", err)
 	}
 	return &p, nil
 }

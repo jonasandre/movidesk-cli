@@ -98,8 +98,8 @@ func TestE2E_TicketsRelations(t *testing.T) {
 
 	out, _, err := runCmd(t, "tickets", "relations", "1", "--output", "json", "--compact")
 	require.NoError(t, err)
-	assert.Contains(t, out, "Parents:")
-	assert.Contains(t, out, "Children:")
+	assert.Contains(t, out, "Pais:")
+	assert.Contains(t, out, "Filhos:")
 	assert.Contains(t, out, `"id":10`)
 	assert.Contains(t, out, `"id":21`)
 }
@@ -145,8 +145,8 @@ func TestE2E_TicketsHistoriesList(t *testing.T) {
 
 	out, _, err := runCmd(t, "tickets", "histories", "list", "1", "--output", "json", "--compact")
 	require.NoError(t, err)
-	assert.Contains(t, out, "Owner history:")
-	assert.Contains(t, out, "Status history:")
+	assert.Contains(t, out, "Histórico de responsável:")
+	assert.Contains(t, out, "Histórico de status:")
 	assert.Contains(t, out, "Mike")
 	assert.Contains(t, out, "Novo")
 }

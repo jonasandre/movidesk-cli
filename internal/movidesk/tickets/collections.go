@@ -26,7 +26,7 @@ func (s *Service) fetchExpanded(ctx context.Context, ticketID int, expand []stri
 	}
 	var tk Ticket
 	if err := json.Unmarshal(body, &tk); err != nil {
-		return nil, nil, fmt.Errorf("decode ticket: %w", err)
+		return nil, nil, fmt.Errorf("decodificar chamado: %w", err)
 	}
 	return &tk, body, nil
 }
@@ -51,7 +51,7 @@ func (s *Service) GetAction(ctx context.Context, ticketID, actionID int) (*Actio
 			return &actions[i], nil
 		}
 	}
-	return nil, fmt.Errorf("action %d not found in ticket %d", actionID, ticketID)
+	return nil, fmt.Errorf("ação %d não encontrada no chamado %d", actionID, ticketID)
 }
 
 // ListClients returns the clients[] of a ticket.

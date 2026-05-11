@@ -36,7 +36,7 @@ func resolveClient(cmd *cobra.Command) (*resolved, error) {
 	}
 	tok, err := auth.ResolveToken(auth.New(), tn.Name)
 	if err != nil {
-		return nil, fmt.Errorf("resolve token for tenant %q: %w", tn.Name, err)
+		return nil, fmt.Errorf("resolver token do tenant %q: %w", tn.Name, err)
 	}
 
 	c := movidesk.New(tn.EffectiveBaseURL(), tok)

@@ -123,7 +123,7 @@ func (s *Service) ListResponsesPage(ctx context.Context, limit int, startingAfte
 	}
 	var p ResponsePage
 	if err := json.Unmarshal(body, &p); err != nil {
-		return nil, fmt.Errorf("decode response page: %w", err)
+		return nil, fmt.Errorf("decodificar página de respostas: %w", err)
 	}
 	return &p, nil
 }

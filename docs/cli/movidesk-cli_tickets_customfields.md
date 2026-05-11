@@ -1,16 +1,16 @@
 ## movidesk-cli tickets customfields
 
-Read and write ticket custom fields (with read-merge-patch safety)
+Lê e escreve campos personalizados de chamados (com read-merge-patch seguro)
 
 ### Synopsis
 
-Movidesk's PATCH /tickets deletes any customFieldValues entry not
-present in the body. This subcommand uses read-merge-patch internally so
-you only describe the change you want, never the whole list.
+O PATCH /tickets do Movidesk apaga qualquer entrada de customFieldValues
+ausente no corpo. Este subcomando usa read-merge-patch internamente, então
+você só descreve a alteração desejada, nunca a lista completa.
 
-A local catalog at ~/.movidesk/<tenant>/customfields.yaml maps human-friendly
-labels to numeric field IDs and types so you can use --field-label "Severidade"
-instead of --field 125529.
+Um catálogo local em ~/.movidesk/<tenant>/customfields.yaml mapeia rótulos
+legíveis para os ids numéricos e tipos dos campos, permitindo usar
+--field-label "Severidade" no lugar de --field 125529.
 
 ### Options
 
@@ -21,20 +21,20 @@ instead of --field 125529.
 ### Options inherited from parent commands
 
 ```
-      --compact         compact JSON output (no indentation)
-      --no-color        disable colored output
-      --no-retry        disable automatic retry on 429/5xx
-  -o, --output string   output format: json|table|csv (default: tenant or 'json')
-      --tenant string   tenant name (overrides current tenant; env: MOVIDESK_TENANT)
-      --user string     default user id (Cod. Ref.) for createdBy on writes; overrides tenant config; env: MOVIDESK_USER
-  -v, --verbose         verbose logging to stderr
+      --compact         JSON compacto (sem indentação)
+      --no-color        desativa cores na saída
+      --no-retry        desativa retentativa automática em 429/5xx
+  -o, --output string   formato de saída: json|table|csv (padrão: do tenant ou 'json')
+      --tenant string   nome do tenant (sobrepõe o tenant atual; env: MOVIDESK_TENANT)
+      --user string     id do usuário padrão (Cod. Ref.) usado em createdBy nas escritas; sobrepõe a configuração do tenant; env: MOVIDESK_USER
+  -v, --verbose         log detalhado em stderr
 ```
 
 ### SEE ALSO
 
-* [movidesk-cli tickets](movidesk-cli_tickets.md)	 - Manage Movidesk tickets
-* [movidesk-cli tickets customfields catalog](movidesk-cli_tickets_customfields_catalog.md)	 - Manage the local catalog of custom fields per tenant
-* [movidesk-cli tickets customfields clear](movidesk-cli_tickets_customfields_clear.md)	 - Remove a custom field value (read-merge-patch)
-* [movidesk-cli tickets customfields set](movidesk-cli_tickets_customfields_set.md)	 - Set a custom field value (read-merge-patch)
-* [movidesk-cli tickets customfields show](movidesk-cli_tickets_customfields_show.md)	 - List a ticket's customFieldValues
+* [movidesk-cli tickets](movidesk-cli_tickets.md)	 - Gerencia chamados (tickets) do Movidesk
+* [movidesk-cli tickets customfields catalog](movidesk-cli_tickets_customfields_catalog.md)	 - Gerencia o catálogo local de campos personalizados por tenant
+* [movidesk-cli tickets customfields clear](movidesk-cli_tickets_customfields_clear.md)	 - Remove o valor de um campo personalizado (read-merge-patch)
+* [movidesk-cli tickets customfields set](movidesk-cli_tickets_customfields_set.md)	 - Define o valor de um campo personalizado (read-merge-patch)
+* [movidesk-cli tickets customfields show](movidesk-cli_tickets_customfields_show.md)	 - Lista os customFieldValues de um chamado
 

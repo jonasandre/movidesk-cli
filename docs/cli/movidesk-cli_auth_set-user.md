@@ -1,14 +1,14 @@
 ## movidesk-cli auth set-user
 
-Set or clear the default user (Cod. Ref.) for the current tenant
+Define ou remove o usuário padrão (Cod. Ref.) do tenant atual
 
 ### Synopsis
 
-Sets the default user that the CLI auto-injects as createdBy on writes that
-need attribution (e.g. tickets create, tickets actions add). Override per
-command with --user <id>.
+Define o usuário padrão que o CLI injeta como createdBy nas escritas que
+exigem atribuição (ex.: tickets create, tickets actions add). Sobreponha por
+comando com --user <id>.
 
-Pass --clear to remove the configured default.
+Use --clear para remover o padrão configurado.
 
 ```
 movidesk-cli auth set-user [<id>] [flags]
@@ -17,24 +17,24 @@ movidesk-cli auth set-user [<id>] [flags]
 ### Options
 
 ```
-      --clear              remove the configured default user
+      --clear              remove o usuário padrão configurado
   -h, --help               help for set-user
-      --skip-verify-user   skip existence check
-      --tenant string      tenant to update (default: current)
+      --skip-verify-user   pula a checagem de existência
+      --tenant string      tenant a atualizar (padrão: atual)
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --compact         compact JSON output (no indentation)
-      --no-color        disable colored output
-      --no-retry        disable automatic retry on 429/5xx
-  -o, --output string   output format: json|table|csv (default: tenant or 'json')
-      --user string     default user id (Cod. Ref.) for createdBy on writes; overrides tenant config; env: MOVIDESK_USER
-  -v, --verbose         verbose logging to stderr
+      --compact         JSON compacto (sem indentação)
+      --no-color        desativa cores na saída
+      --no-retry        desativa retentativa automática em 429/5xx
+  -o, --output string   formato de saída: json|table|csv (padrão: do tenant ou 'json')
+      --user string     id do usuário padrão (Cod. Ref.) usado em createdBy nas escritas; sobrepõe a configuração do tenant; env: MOVIDESK_USER
+  -v, --verbose         log detalhado em stderr
 ```
 
 ### SEE ALSO
 
-* [movidesk-cli auth](movidesk-cli_auth.md)	 - Manage Movidesk tokens and tenants
+* [movidesk-cli auth](movidesk-cli_auth.md)	 - Gerencia tokens e tenants do Movidesk
 

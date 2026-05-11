@@ -110,7 +110,7 @@ func TestFileStore_WrongPassphraseReturnsDecryptError(t *testing.T) {
 	t.Setenv(EnvPassphrase, "wrong")
 	_, err := s.Get("acme")
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "decrypt credentials")
+	assert.Contains(t, err.Error(), "descriptografar credenciais")
 }
 
 func TestFileStore_FallbackWarningEmittedWithoutPassphrase(t *testing.T) {

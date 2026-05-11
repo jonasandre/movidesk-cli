@@ -13,7 +13,7 @@ type tableFormatter struct{}
 func (tableFormatter) Render(w io.Writer, v any, opts Options) error {
 	rows := asRows(v)
 	if len(rows) == 0 {
-		_, err := fmt.Fprintln(w, "(no rows)")
+		_, err := fmt.Fprintln(w, "(sem linhas)")
 		return err
 	}
 

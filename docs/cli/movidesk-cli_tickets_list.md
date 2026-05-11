@@ -1,6 +1,6 @@
 ## movidesk-cli tickets list
 
-List tickets (last 90 days; older tickets in `tickets past list`)
+Lista chamados (últimos 90 dias; mais antigos em `tickets past list`)
 
 ```
 movidesk-cli tickets list [flags]
@@ -9,32 +9,32 @@ movidesk-cli tickets list [flags]
 ### Options
 
 ```
-      --all               fetch every page (auto-paginate)
-      --columns strings   comma-separated columns for table/csv output (dot-paths supported)
-      --expand strings    comma-separated $expand expressions
-      --filter string     OData $filter expression
+      --all               busca todas as páginas (auto-paginação)
+      --columns strings   colunas separadas por vírgula para saída table/csv (suporta dot-paths)
+      --expand strings    expressões $expand separadas por vírgula
+      --filter string     expressão OData $filter
   -h, --help              help for list
-      --include-deleted   include deleted actions/clients/parents/children
-      --max int           with --all, stop after this many records
-      --orderby strings   comma-separated $orderby clauses (e.g. "id desc")
-      --select strings    comma-separated $select fields
-      --skip int          $skip: server-side offset
-      --top int           $top: page size or single-page limit
+      --include-deleted   inclui ações/clientes/relações excluídas
+      --max int           com --all, interrompe após este número de registros
+      --orderby strings   cláusulas $orderby separadas por vírgula (ex.: "id desc")
+      --select strings    campos $select separados por vírgula
+      --skip int          $skip: offset no servidor
+      --top int           $top: tamanho da página ou limite de uma única página
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --compact         compact JSON output (no indentation)
-      --no-color        disable colored output
-      --no-retry        disable automatic retry on 429/5xx
-  -o, --output string   output format: json|table|csv (default: tenant or 'json')
-      --tenant string   tenant name (overrides current tenant; env: MOVIDESK_TENANT)
-      --user string     default user id (Cod. Ref.) for createdBy on writes; overrides tenant config; env: MOVIDESK_USER
-  -v, --verbose         verbose logging to stderr
+      --compact         JSON compacto (sem indentação)
+      --no-color        desativa cores na saída
+      --no-retry        desativa retentativa automática em 429/5xx
+  -o, --output string   formato de saída: json|table|csv (padrão: do tenant ou 'json')
+      --tenant string   nome do tenant (sobrepõe o tenant atual; env: MOVIDESK_TENANT)
+      --user string     id do usuário padrão (Cod. Ref.) usado em createdBy nas escritas; sobrepõe a configuração do tenant; env: MOVIDESK_USER
+  -v, --verbose         log detalhado em stderr
 ```
 
 ### SEE ALSO
 
-* [movidesk-cli tickets](movidesk-cli_tickets.md)	 - Manage Movidesk tickets
+* [movidesk-cli tickets](movidesk-cli_tickets.md)	 - Gerencia chamados (tickets) do Movidesk
 

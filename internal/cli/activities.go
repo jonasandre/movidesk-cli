@@ -13,9 +13,9 @@ import (
 func newActivitiesCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "activities",
-		Short: "Manage Movidesk activities (/activity)",
-		Long: `Activities use cursor-based pagination (limit/startingAfter) — not OData.
-Use --name to substring-filter, --all to walk every page.`,
+		Short: "Gerencia atividades do Movidesk (/activity)",
+		Long: `Atividades usam paginação por cursor (limit/startingAfter) — não OData.
+Use --name para filtrar por substring e --all para percorrer todas as páginas.`,
 	}
 	cmd.AddCommand(
 		newActivitiesListCmd(),
@@ -39,7 +39,7 @@ func newActivitiesListCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List activities (cursor pagination)",
+		Short: "Lista atividades (paginação por cursor)",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -60,11 +60,11 @@ func newActivitiesListCmd() *cobra.Command {
 			return renderRows(cmd.OutOrStdout(), page, r.output, "activities", cf.cols)
 		},
 	}
-	cmd.Flags().StringVar(&nameFilter, "name", "", "filter by substring on activity name")
-	cmd.Flags().IntVar(&limit, "limit", 0, "page size (1..100, default 100)")
-	cmd.Flags().StringVar(&startingAfter, "starting-after", "", "cursor (last id of previous page)")
-	cmd.Flags().BoolVar(&all, "all", false, "walk every page")
-	cmd.Flags().IntVar(&max, "max", 0, "with --all, stop after this many records")
+	cmd.Flags().StringVar(&nameFilter, "name", "", "filtra por substring no nome da atividade")
+	cmd.Flags().IntVar(&limit, "limit", 0, "tamanho da página (1..100, padrão 100)")
+	cmd.Flags().StringVar(&startingAfter, "starting-after", "", "cursor (último id da página anterior)")
+	cmd.Flags().BoolVar(&all, "all", false, "percorre todas as páginas")
+	cmd.Flags().IntVar(&max, "max", 0, "com --all, interrompe após este número de registros")
 	cf.bind(cmd)
 	return cmd
 }
@@ -73,12 +73,12 @@ func newActivitiesGetCmd() *cobra.Command {
 	var cf columnsFlag
 	cmd := &cobra.Command{
 		Use:   "get <id>",
-		Short: "Get one activity by id",
+		Short: "Obtém uma atividade pelo id",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
-				return fmt.Errorf("invalid id %q", args[0])
+				return fmt.Errorf("id inválido %q", args[0])
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -104,14 +104,14 @@ func newActivitiesCreateCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "create",
-		Short: "Create an activity",
+		Short: "Cria uma atividade",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			body, err := loadBody(file, template, templateFile, sets)
 			if err != nil {
 				return err
 			}
 			if len(body) == 0 {
-				return errors.New("no body fields supplied; pass --file, --from-template[-file], or --set key=value")
+				return errors.New("nenhum campo informado; passe --file, --from-template[-file] ou --set chave=valor")
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -124,10 +124,10 @@ func newActivitiesCreateCmd() *cobra.Command {
 			return renderJSON(cmd.OutOrStdout(), raw, r.output, "activities", nil)
 		},
 	}
-	cmd.Flags().StringVarP(&file, "file", "f", "", "path to JSON body")
-	cmd.Flags().StringVar(&template, "from-template", "", "load ~/.movidesk/templates/<name>.json")
-	cmd.Flags().StringVar(&templateFile, "from-template-file", "", "load template from a path")
-	cmd.Flags().StringSliceVar(&sets, "set", nil, "override fields, e.g. --set name=\"Atividade\" --set isActive=true")
+	cmd.Flags().StringVarP(&file, "file", "f", "", "caminho do corpo JSON")
+	cmd.Flags().StringVar(&template, "from-template", "", "carrega ~/.movidesk/templates/<nome>.json")
+	cmd.Flags().StringVar(&templateFile, "from-template-file", "", "carrega template de um caminho específico")
+	cmd.Flags().StringSliceVar(&sets, "set", nil, "sobrescreve campos, ex.: --set name=\"Atividade\" --set isActive=true")
 	return cmd
 }
 
@@ -140,19 +140,19 @@ func newActivitiesUpdateCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "update <id>",
-		Short: "Patch an activity by id",
+		Short: "Aplica patch em uma atividade por id",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
-				return fmt.Errorf("invalid id %q", args[0])
+				return fmt.Errorf("id inválido %q", args[0])
 			}
 			body, err := loadBody(file, template, templateFile, sets)
 			if err != nil {
 				return err
 			}
 			if len(body) == 0 {
-				return errors.New("no fields to update")
+				return errors.New("nenhum campo para atualizar")
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -169,10 +169,10 @@ func newActivitiesUpdateCmd() *cobra.Command {
 			return renderJSON(cmd.OutOrStdout(), raw, r.output, "activities", nil)
 		},
 	}
-	cmd.Flags().StringVarP(&file, "file", "f", "", "path to JSON patch body")
-	cmd.Flags().StringVar(&template, "from-template", "", "load ~/.movidesk/templates/<name>.json")
-	cmd.Flags().StringVar(&templateFile, "from-template-file", "", "load template from a specific path")
-	cmd.Flags().StringSliceVar(&sets, "set", nil, "override fields inline, e.g. --set name=Foo")
+	cmd.Flags().StringVarP(&file, "file", "f", "", "caminho do corpo JSON de patch")
+	cmd.Flags().StringVar(&template, "from-template", "", "carrega ~/.movidesk/templates/<nome>.json")
+	cmd.Flags().StringVar(&templateFile, "from-template-file", "", "carrega template de um caminho específico")
+	cmd.Flags().StringSliceVar(&sets, "set", nil, "sobrescreve campos inline, ex.: --set name=Foo")
 	return cmd
 }
 
@@ -180,15 +180,15 @@ func newActivitiesDeleteCmd() *cobra.Command {
 	var force bool
 	cmd := &cobra.Command{
 		Use:   "delete <id>",
-		Short: "Delete an activity",
+		Short: "Exclui uma atividade",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
-				return fmt.Errorf("invalid id %q", args[0])
+				return fmt.Errorf("id inválido %q", args[0])
 			}
 			if !force {
-				if err := confirm(cmd, fmt.Sprintf("Delete activity %d? This cannot be undone.", id)); err != nil {
+				if err := confirm(cmd, fmt.Sprintf("Excluir a atividade %d? Esta ação é irreversível.", id)); err != nil {
 					return err
 				}
 			}
@@ -203,7 +203,7 @@ func newActivitiesDeleteCmd() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().BoolVar(&force, "force", false, "skip confirmation prompt")
+	cmd.Flags().BoolVar(&force, "force", false, "pula o prompt de confirmação")
 	return cmd
 }
 
@@ -211,15 +211,15 @@ func newActivitiesAddTeamsCmd() *cobra.Command {
 	var teams []string
 	cmd := &cobra.Command{
 		Use:   "add-teams <activity-id>",
-		Short: "Append teams to an activity (POST /addTeamsToActivity)",
+		Short: "Adiciona equipes a uma atividade (POST /addTeamsToActivity)",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
-				return fmt.Errorf("invalid activity id %q", args[0])
+				return fmt.Errorf("id da atividade inválido %q", args[0])
 			}
 			if len(teams) == 0 {
-				return errors.New("--team is required (repeatable)")
+				return errors.New("--team é obrigatório (repetível)")
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -232,6 +232,6 @@ func newActivitiesAddTeamsCmd() *cobra.Command {
 			return renderJSON(cmd.OutOrStdout(), raw, r.output, "", nil)
 		},
 	}
-	cmd.Flags().StringSliceVar(&teams, "team", nil, "team name to append (repeatable)")
+	cmd.Flags().StringSliceVar(&teams, "team", nil, "nome da equipe a adicionar (repetível)")
 	return cmd
 }

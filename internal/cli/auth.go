@@ -21,7 +21,7 @@ import (
 func newAuthCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "auth",
-		Short: "Manage Movidesk tokens and tenants",
+		Short: "Gerencia tokens e tenants do Movidesk",
 	}
 	cmd.AddCommand(
 		newAuthLoginCmd(),
@@ -79,22 +79,22 @@ func newAuthLoginCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "login",
-		Short: "Add or update a tenant and store its API token",
-		Long: `Add or update a Movidesk tenant. The token is read from a hidden prompt
-(or stdin when not a TTY) and saved to the OS keychain when available, otherwise
-to an encrypted file under ~/.movidesk.
+		Short: "Adiciona ou atualiza um tenant e armazena seu token de API",
+		Long: `Adiciona ou atualiza um tenant do Movidesk. O token é lido de um prompt
+oculto (ou da stdin quando não há TTY) e salvo no chaveiro do sistema operacional
+quando disponível; caso contrário, em arquivo criptografado em ~/.movidesk.
 
-By default, login validates the token by issuing GET /persons?$top=1 against
-the configured base URL. Use --skip-verify to bypass.
+Por padrão, login valida o token fazendo GET /persons?$top=1 contra a base URL
+configurada. Use --skip-verify para pular essa verificação.
 
-After validating the token, login optionally prompts for a default user
-(Cod. Ref.) that will be auto-injected as createdBy on writes that need
-attribution. Pass --user <id> to set it non-interactively, or skip the prompt
-by leaving the answer empty. Use --skip-verify-user to skip the existence
-check (handy when the token's permissions can't read the persons API).`,
+Após validar o token, login pode solicitar interativamente um usuário padrão
+(Cod. Ref.) que será injetado automaticamente como createdBy nas escritas que
+exigem atribuição. Passe --user <id> para definir sem prompt, ou deixe vazio
+para pular. Use --skip-verify-user para pular a checagem de existência (útil
+quando o token não tem permissão de ler a API de pessoas).`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if tenant == "" {
-				return errors.New("--tenant is required")
+				return errors.New("--tenant é obrigatório")
 			}
 
 			cfg, err := config.Load()
@@ -113,43 +113,43 @@ check (handy when the token's permissions can't read the persons API).`,
 				tn.BaseURL = baseURL
 			}
 
-			token, err := readToken("Enter Movidesk token for tenant " + tenant + ": ")
+			token, err := readToken("Token do Movidesk para o tenant " + tenant + ": ")
 			if err != nil {
-				return fmt.Errorf("read token: %w", err)
+				return fmt.Errorf("ler token: %w", err)
 			}
 			if token == "" {
-				return errors.New("token cannot be empty")
+				return errors.New("token não pode ser vazio")
 			}
 
 			if !skipVerify {
 				if err := validateToken(cmd.Context(), tn.EffectiveBaseURL(), token); err != nil {
 					if movidesk.IsUnauthorized(err) {
-						return fmt.Errorf("token rejected by Movidesk (401/403). Check the token and try again")
+						return fmt.Errorf("token rejeitado pelo Movidesk (401/403). Verifique o token e tente novamente")
 					}
-					return fmt.Errorf("validate token: %w", err)
+					return fmt.Errorf("validar token: %w", err)
 				}
 			}
 
 			// Resolve default user: --user from persistent flag, else interactive prompt.
 			userID := strings.TrimSpace(flags.user)
 			if userID == "" && term.IsTerminal(int(os.Stdin.Fd())) {
-				userID, err = readLine(cmd.ErrOrStderr(), "Default user (Cod. Ref.) [optional, press enter to skip]: ")
+				userID, err = readLine(cmd.ErrOrStderr(), "Usuário padrão (Cod. Ref.) [opcional, enter para pular]: ")
 				if err != nil {
-					return fmt.Errorf("read user: %w", err)
+					return fmt.Errorf("ler usuário: %w", err)
 				}
 			}
 			if userID != "" && !skipVerifyUser {
 				name, err := validateUser(cmd.Context(), tn.EffectiveBaseURL(), token, userID)
 				if err != nil {
-					return fmt.Errorf("validate user %q: %w (use --skip-verify-user to bypass)", userID, err)
+					return fmt.Errorf("validar usuário %q: %w (use --skip-verify-user para pular)", userID, err)
 				}
-				fmt.Fprintf(cmd.ErrOrStderr(), "Default user: %s (%s)\n", userID, strOrDash(name))
+				fmt.Fprintf(cmd.ErrOrStderr(), "Usuário padrão: %s (%s)\n", userID, strOrDash(name))
 			}
 			tn.DefaultUser = userID
 
 			store := auth.New()
 			if err := store.Set(tenant, token); err != nil {
-				return fmt.Errorf("store token: %w", err)
+				return fmt.Errorf("armazenar token: %w", err)
 			}
 
 			cfg.Set(tn)
@@ -159,16 +159,16 @@ check (handy when the token's permissions can't read the persons API).`,
 			if err := cfg.Save(); err != nil {
 				return err
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "Saved tenant %q (current: %s)\n", tenant, cfg.CurrentTenant)
+			fmt.Fprintf(cmd.OutOrStdout(), "Tenant %q salvo (atual: %s)\n", tenant, cfg.CurrentTenant)
 			return nil
 		},
 	}
-	cmd.Flags().StringVar(&tenant, "tenant", "", "tenant name (required)")
-	cmd.Flags().StringVar(&label, "label", "", "human label, e.g. \"Acme Prod\"")
-	cmd.Flags().StringVar(&baseURL, "base-url", "", "override API base URL (sandbox)")
-	cmd.Flags().BoolVar(&makeDefault, "make-default", false, "set this tenant as the current one")
-	cmd.Flags().BoolVar(&skipVerify, "skip-verify", false, "do not validate the token against the API")
-	cmd.Flags().BoolVar(&skipVerifyUser, "skip-verify-user", false, "skip existence check on the default user")
+	cmd.Flags().StringVar(&tenant, "tenant", "", "nome do tenant (obrigatório)")
+	cmd.Flags().StringVar(&label, "label", "", "rótulo legível, ex.: \"Acme Prod\"")
+	cmd.Flags().StringVar(&baseURL, "base-url", "", "sobrepõe a base URL da API (sandbox)")
+	cmd.Flags().BoolVar(&makeDefault, "make-default", false, "define este tenant como o atual")
+	cmd.Flags().BoolVar(&skipVerify, "skip-verify", false, "não valida o token contra a API")
+	cmd.Flags().BoolVar(&skipVerifyUser, "skip-verify-user", false, "pula a checagem de existência do usuário padrão")
 	_ = cmd.MarkFlagRequired("tenant")
 	return cmd
 }
@@ -194,14 +194,14 @@ func readLine(out interface{ Write([]byte) (int, error) }, prompt string) (strin
 func newAuthListCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "list",
-		Short: "List configured tenants",
+		Short: "Lista os tenants configurados",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.Load()
 			if err != nil {
 				return err
 			}
 			if len(cfg.Tenants) == 0 {
-				fmt.Fprintln(cmd.OutOrStdout(), "No tenants configured. Run `movidesk-cli auth login --tenant <name>`.")
+				fmt.Fprintln(cmd.OutOrStdout(), "Nenhum tenant configurado. Execute `movidesk-cli auth login --tenant <nome>`.")
 				return nil
 			}
 			names := make([]string, 0, len(cfg.Tenants))
@@ -234,7 +234,7 @@ func newAuthListCmd() *cobra.Command {
 func newAuthSwitchCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "switch <tenant>",
-		Short: "Switch the current tenant",
+		Short: "Troca o tenant atual",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.Load()
@@ -248,7 +248,7 @@ func newAuthSwitchCmd() *cobra.Command {
 			if err := cfg.Save(); err != nil {
 				return err
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "Current tenant: %s\n", args[0])
+			fmt.Fprintf(cmd.OutOrStdout(), "Tenant atual: %s\n", args[0])
 			return nil
 		},
 	}
@@ -258,7 +258,7 @@ func newAuthStatusCmd() *cobra.Command {
 	var tenantOverride string
 	cmd := &cobra.Command{
 		Use:   "status",
-		Short: "Validate the current (or specified) tenant token",
+		Short: "Valida o token do tenant atual (ou do informado)",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.Load()
 			if err != nil {
@@ -275,28 +275,28 @@ func newAuthStatusCmd() *cobra.Command {
 			err = validateToken(cmd.Context(), tn.EffectiveBaseURL(), tok)
 			out := cmd.OutOrStdout()
 			fmt.Fprintf(out, "tenant:   %s\n", tn.Name)
-			fmt.Fprintf(out, "label:    %s\n", strOrDash(tn.Label))
+			fmt.Fprintf(out, "rótulo:   %s\n", strOrDash(tn.Label))
 			fmt.Fprintf(out, "base_url: %s\n", tn.EffectiveBaseURL())
 			fmt.Fprintf(out, "token:    %s\n", auth.EncodePeek(tok))
 			if tn.DefaultUser != "" {
 				name, vErr := validateUser(cmd.Context(), tn.EffectiveBaseURL(), tok, tn.DefaultUser)
 				if vErr != nil {
-					fmt.Fprintf(out, "user:     %s (ERROR — %s)\n", tn.DefaultUser, vErr)
+					fmt.Fprintf(out, "usuário:  %s (ERRO — %s)\n", tn.DefaultUser, vErr)
 				} else {
-					fmt.Fprintf(out, "user:     %s (%s)\n", tn.DefaultUser, strOrDash(name))
+					fmt.Fprintf(out, "usuário:  %s (%s)\n", tn.DefaultUser, strOrDash(name))
 				}
 			} else {
-				fmt.Fprintln(out, "user:     —")
+				fmt.Fprintln(out, "usuário:  —")
 			}
 			if err != nil {
-				fmt.Fprintf(out, "status:   ERROR — %s\n", err)
+				fmt.Fprintf(out, "status:   ERRO — %s\n", err)
 				return err
 			}
 			fmt.Fprintln(out, "status:   OK")
 			return nil
 		},
 	}
-	cmd.Flags().StringVar(&tenantOverride, "tenant", "", "tenant to check (default: current)")
+	cmd.Flags().StringVar(&tenantOverride, "tenant", "", "tenant a verificar (padrão: atual)")
 	return cmd
 }
 
@@ -308,19 +308,19 @@ func newAuthSetUserCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "set-user [<id>]",
-		Short: "Set or clear the default user (Cod. Ref.) for the current tenant",
-		Long: `Sets the default user that the CLI auto-injects as createdBy on writes that
-need attribution (e.g. tickets create, tickets actions add). Override per
-command with --user <id>.
+		Short: "Define ou remove o usuário padrão (Cod. Ref.) do tenant atual",
+		Long: `Define o usuário padrão que o CLI injeta como createdBy nas escritas que
+exigem atribuição (ex.: tickets create, tickets actions add). Sobreponha por
+comando com --user <id>.
 
-Pass --clear to remove the configured default.`,
+Use --clear para remover o padrão configurado.`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if clear && len(args) > 0 {
-				return errors.New("--clear is mutually exclusive with a positional id")
+				return errors.New("--clear não pode ser combinado com um id posicional")
 			}
 			if !clear && len(args) != 1 {
-				return errors.New("provide a user id, or pass --clear to remove")
+				return errors.New("informe um id de usuário, ou use --clear para remover")
 			}
 
 			cfg, err := config.Load()
@@ -338,7 +338,7 @@ Pass --clear to remove the configured default.`,
 				if err := cfg.Save(); err != nil {
 					return err
 				}
-				fmt.Fprintf(cmd.OutOrStdout(), "Cleared default user for tenant %q\n", tn.Name)
+				fmt.Fprintf(cmd.OutOrStdout(), "Usuário padrão removido do tenant %q\n", tn.Name)
 				return nil
 			}
 
@@ -350,22 +350,22 @@ Pass --clear to remove the configured default.`,
 				}
 				name, err := validateUser(cmd.Context(), tn.EffectiveBaseURL(), tok, id)
 				if err != nil {
-					return fmt.Errorf("validate user %q: %w (use --skip-verify-user to bypass)", id, err)
+					return fmt.Errorf("validar usuário %q: %w (use --skip-verify-user para pular)", id, err)
 				}
-				fmt.Fprintf(cmd.ErrOrStderr(), "Default user: %s (%s)\n", id, strOrDash(name))
+				fmt.Fprintf(cmd.ErrOrStderr(), "Usuário padrão: %s (%s)\n", id, strOrDash(name))
 			}
 			tn.DefaultUser = id
 			cfg.Set(tn)
 			if err := cfg.Save(); err != nil {
 				return err
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "Saved default user %q for tenant %q\n", id, tn.Name)
+			fmt.Fprintf(cmd.OutOrStdout(), "Usuário padrão %q salvo no tenant %q\n", id, tn.Name)
 			return nil
 		},
 	}
-	cmd.Flags().StringVar(&tenantOverride, "tenant", "", "tenant to update (default: current)")
-	cmd.Flags().BoolVar(&clear, "clear", false, "remove the configured default user")
-	cmd.Flags().BoolVar(&skipVerifyUser, "skip-verify-user", false, "skip existence check")
+	cmd.Flags().StringVar(&tenantOverride, "tenant", "", "tenant a atualizar (padrão: atual)")
+	cmd.Flags().BoolVar(&clear, "clear", false, "remove o usuário padrão configurado")
+	cmd.Flags().BoolVar(&skipVerifyUser, "skip-verify-user", false, "pula a checagem de existência")
 	return cmd
 }
 
@@ -376,7 +376,7 @@ func newAuthLogoutCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "logout",
-		Short: "Remove a tenant's stored token (and optionally the tenant entry)",
+		Short: "Remove o token armazenado de um tenant (e opcionalmente o registro do tenant)",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.Load()
 			if err != nil {
@@ -394,22 +394,22 @@ func newAuthLogoutCmd() *cobra.Command {
 					name = cfg.CurrentTenant
 				}
 				if name == "" {
-					return errors.New("no tenant specified and no current tenant set")
+					return errors.New("nenhum tenant informado e nenhum tenant atual definido")
 				}
 				targets = []string{name}
 			}
 			for _, n := range targets {
 				if err := store.Delete(n); err != nil && !errors.Is(err, auth.ErrNotFound) {
-					return fmt.Errorf("delete token for %s: %w", n, err)
+					return fmt.Errorf("excluir token de %s: %w", n, err)
 				}
 				cfg.Delete(n)
-				fmt.Fprintf(cmd.OutOrStdout(), "Logged out tenant %q\n", n)
+				fmt.Fprintf(cmd.OutOrStdout(), "Logout do tenant %q realizado\n", n)
 			}
 			return cfg.Save()
 		},
 	}
-	cmd.Flags().StringVar(&tenantOverride, "tenant", "", "tenant to log out (default: current)")
-	cmd.Flags().BoolVar(&all, "all", false, "log out every configured tenant")
+	cmd.Flags().StringVar(&tenantOverride, "tenant", "", "tenant para fazer logout (padrão: atual)")
+	cmd.Flags().BoolVar(&all, "all", false, "faz logout de todos os tenants configurados")
 	return cmd
 }
 
@@ -417,7 +417,7 @@ func newAuthTokenCmd() *cobra.Command {
 	var tenantOverride string
 	cmd := &cobra.Command{
 		Use:   "token",
-		Short: "Print a tenant's token to stdout (use with care; for piping)",
+		Short: "Imprime o token de um tenant no stdout (use com cuidado; para piping)",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.Load()
 			if err != nil {
@@ -435,7 +435,7 @@ func newAuthTokenCmd() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().StringVar(&tenantOverride, "tenant", "", "tenant (default: current)")
+	cmd.Flags().StringVar(&tenantOverride, "tenant", "", "tenant (padrão: atual)")
 	return cmd
 }
 

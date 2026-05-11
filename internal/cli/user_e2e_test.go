@@ -163,7 +163,7 @@ func TestE2E_AuthSetUser_ValidatesAndSaves(t *testing.T) {
 	out, _, err := runCmd(t, "auth", "set-user", "u-bot")
 	require.NoError(t, err)
 	assert.Contains(t, seen, "id=u-bot")
-	assert.Contains(t, out, `Saved default user "u-bot"`)
+	assert.Contains(t, out, `Usuário padrão "u-bot" salvo`)
 
 	cfg, err := config.Load()
 	require.NoError(t, err)
@@ -179,7 +179,7 @@ func TestE2E_AuthSetUser_Clear(t *testing.T) {
 
 	out, _, err := runCmd(t, "auth", "set-user", "--clear")
 	require.NoError(t, err)
-	assert.Contains(t, out, "Cleared default user")
+	assert.Contains(t, out, "Usuário padrão removido")
 
 	cfg, err := config.Load()
 	require.NoError(t, err)

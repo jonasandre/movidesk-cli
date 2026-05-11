@@ -63,8 +63,8 @@ func passphrase() []byte {
 	// the user home path can reproduce it. Set MOVIDESK_PASSPHRASE for a
 	// stronger guarantee in headless or shared environments.
 	fmt.Fprintf(os.Stderr,
-		"warning: %s is not set; using a predictable machine-local key for credential encryption. "+
-			"Set %s for stronger security in headless environments.\n",
+		"aviso: %s não está definida; usando uma chave previsível e local pra criptografar credenciais. "+
+			"Defina %s pra maior segurança em ambientes headless.\n",
 		EnvPassphrase, EnvPassphrase)
 	home, _ := os.UserHomeDir()
 	h := sha256.Sum256([]byte("movidesk-cli|" + home))
@@ -85,11 +85,11 @@ func loadBlob() (map[string]string, *credsBlob, error) {
 		return map[string]string{}, &credsBlob{V: 1}, nil
 	}
 	if err != nil {
-		return nil, nil, fmt.Errorf("read credentials file: %w", err)
+		return nil, nil, fmt.Errorf("ler arquivo de credenciais: %w", err)
 	}
 	var blob credsBlob
 	if err := json.Unmarshal(raw, &blob); err != nil {
-		return nil, nil, fmt.Errorf("parse credentials file: %w", err)
+		return nil, nil, fmt.Errorf("interpretar arquivo de credenciais: %w", err)
 	}
 	key := deriveKey(passphrase(), blob.Salt)
 	block, err := aes.NewCipher(key)
@@ -102,11 +102,11 @@ func loadBlob() (map[string]string, *credsBlob, error) {
 	}
 	plain, err := gcm.Open(nil, blob.Nonce, blob.Data, nil)
 	if err != nil {
-		return nil, nil, fmt.Errorf("decrypt credentials: %w (try setting %s)", err, EnvPassphrase)
+		return nil, nil, fmt.Errorf("descriptografar credenciais: %w (tente definir %s)", err, EnvPassphrase)
 	}
 	m := map[string]string{}
 	if err := json.Unmarshal(plain, &m); err != nil {
-		return nil, nil, fmt.Errorf("decode credentials: %w", err)
+		return nil, nil, fmt.Errorf("decodificar credenciais: %w", err)
 	}
 	return m, &blob, nil
 }

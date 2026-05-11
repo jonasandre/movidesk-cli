@@ -119,7 +119,7 @@ func TestE2E_CFCatalog_AddListRemove(t *testing.T) {
 		"--options", "Platform,Growth,Mobile",
 	)
 	require.NoError(t, err)
-	assert.Contains(t, out, "Saved")
+	assert.Contains(t, out, "salvo")
 
 	listOut, _, err := runCmd(t, "tickets", "customfields", "catalog", "list", "--output", "json", "--compact")
 	require.NoError(t, err)
@@ -128,7 +128,7 @@ func TestE2E_CFCatalog_AddListRemove(t *testing.T) {
 
 	removeOut, _, err := runCmd(t, "tickets", "customfields", "catalog", "remove", "--label", "Squad")
 	require.NoError(t, err)
-	assert.Contains(t, removeOut, "Removed")
+	assert.Contains(t, removeOut, "removido")
 
 	listOut2, _, err := runCmd(t, "tickets", "customfields", "catalog", "list", "--output", "json", "--compact")
 	require.NoError(t, err)

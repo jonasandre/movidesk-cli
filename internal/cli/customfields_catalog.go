@@ -52,7 +52,7 @@ type Catalog struct {
 
 func catalogPath(tenant string) (string, error) {
 	if tenant == "" {
-		return "", errors.New("tenant is required to resolve catalog path")
+		return "", errors.New("tenant é obrigatório para resolver caminho do catálogo")
 	}
 	d, err := config.Dir()
 	if err != nil {
@@ -75,7 +75,7 @@ func loadCatalog(tenant string) (*Catalog, error) {
 	}
 	var c Catalog
 	if err := yaml.Unmarshal(raw, &c); err != nil {
-		return nil, fmt.Errorf("parse catalog: %w", err)
+		return nil, fmt.Errorf("interpretar catálogo: %w", err)
 	}
 	if c.Fields == nil {
 		c.Fields = map[string]CatalogEntry{}

@@ -28,14 +28,14 @@ type odataFlags struct {
 }
 
 func (f *odataFlags) bind(cmd *cobra.Command) {
-	cmd.Flags().StringVar(&f.filter, "filter", "", "OData $filter expression")
-	cmd.Flags().StringSliceVar(&f.selectF, "select", nil, "comma-separated $select fields")
-	cmd.Flags().StringSliceVar(&f.expand, "expand", nil, "comma-separated $expand expressions")
-	cmd.Flags().StringSliceVar(&f.orderBy, "orderby", nil, "comma-separated $orderby clauses (e.g. \"id desc\")")
-	cmd.Flags().IntVar(&f.top, "top", 0, "$top: page size or single-page limit")
-	cmd.Flags().IntVar(&f.skip, "skip", 0, "$skip: server-side offset")
-	cmd.Flags().BoolVar(&f.all, "all", false, "fetch every page (auto-paginate)")
-	cmd.Flags().IntVar(&f.max, "max", 0, "with --all, stop after this many records")
+	cmd.Flags().StringVar(&f.filter, "filter", "", "expressão OData $filter")
+	cmd.Flags().StringSliceVar(&f.selectF, "select", nil, "campos $select separados por vírgula")
+	cmd.Flags().StringSliceVar(&f.expand, "expand", nil, "expressões $expand separadas por vírgula")
+	cmd.Flags().StringSliceVar(&f.orderBy, "orderby", nil, "cláusulas $orderby separadas por vírgula (ex.: \"id desc\")")
+	cmd.Flags().IntVar(&f.top, "top", 0, "$top: tamanho da página ou limite de uma única página")
+	cmd.Flags().IntVar(&f.skip, "skip", 0, "$skip: offset no servidor")
+	cmd.Flags().BoolVar(&f.all, "all", false, "busca todas as páginas (auto-paginação)")
+	cmd.Flags().IntVar(&f.max, "max", 0, "com --all, interrompe após este número de registros")
 }
 
 func (f *odataFlags) query() odata.Query {
@@ -53,19 +53,19 @@ func (f *odataFlags) query() odata.Query {
 type columnsFlag struct{ cols []string }
 
 func (c *columnsFlag) bind(cmd *cobra.Command) {
-	cmd.Flags().StringSliceVar(&c.cols, "columns", nil, "comma-separated columns for table/csv output (dot-paths supported)")
+	cmd.Flags().StringSliceVar(&c.cols, "columns", nil, "colunas separadas por vírgula para saída table/csv (suporta dot-paths)")
 }
 
 func newTicketsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "tickets",
-		Short: "Manage Movidesk tickets",
-		Long: `Manage Movidesk tickets via the /tickets, /tickets/past, /tickets/merged
-and /tickets/htmldescription endpoints.
+		Short: "Gerencia chamados (tickets) do Movidesk",
+		Long: `Gerencia chamados do Movidesk via os endpoints /tickets, /tickets/past,
+/tickets/merged e /tickets/htmldescription.
 
-The list/get verbs accept OData query parameters; create/update accept a JSON
-body via --file, a saved template via --from-template, or inline overrides
-via --set key=value.`,
+Os verbos list/get aceitam parâmetros de consulta OData; create/update aceitam
+um corpo JSON via --file, um template salvo via --from-template, ou substituições
+inline via --set chave=valor.`,
 	}
 	cmd.AddCommand(
 		newTicketsListCmd(),
@@ -95,7 +95,7 @@ func newTicketsListCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List tickets (last 90 days; older tickets in `tickets past list`)",
+		Short: "Lista chamados (últimos 90 dias; mais antigos em `tickets past list`)",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -124,7 +124,7 @@ func newTicketsListCmd() *cobra.Command {
 	}
 	of.bind(cmd)
 	cf.bind(cmd)
-	cmd.Flags().BoolVar(&includeDeleted, "include-deleted", false, "include deleted actions/clients/parents/children")
+	cmd.Flags().BoolVar(&includeDeleted, "include-deleted", false, "inclui ações/clientes/relações excluídas")
 	return cmd
 }
 
@@ -136,7 +136,7 @@ func newTicketsGetCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "get [id]",
-		Short: "Get one ticket by id (positional) or protocol (--protocol)",
+		Short: "Obtém um chamado por id (posicional) ou protocolo (--protocol)",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			r, err := resolveClient(cmd)
@@ -150,7 +150,7 @@ func newTicketsGetCmd() *cobra.Command {
 			case len(args) == 1:
 				id, err := strconv.Atoi(args[0])
 				if err != nil {
-					return fmt.Errorf("invalid id %q", args[0])
+					return fmt.Errorf("id inválido %q", args[0])
 				}
 				body, err = svc.GetByID(cmd.Context(), id, includeDeleted)
 				if err != nil {
@@ -162,13 +162,13 @@ func newTicketsGetCmd() *cobra.Command {
 					return err
 				}
 			default:
-				return errors.New("provide either an id (positional) or --protocol")
+				return errors.New("informe um id (posicional) ou --protocol")
 			}
 			return renderJSON(cmd.OutOrStdout(), body, r.output, "tickets", cf.cols)
 		},
 	}
-	cmd.Flags().StringVar(&protocol, "protocol", "", "ticket protocol (e.g. MOVI202109000001)")
-	cmd.Flags().BoolVar(&includeDeleted, "include-deleted", false, "include deleted children")
+	cmd.Flags().StringVar(&protocol, "protocol", "", "protocolo do chamado (ex.: MOVI202109000001)")
+	cmd.Flags().BoolVar(&includeDeleted, "include-deleted", false, "inclui filhos excluídos")
 	cf.bind(cmd)
 	return cmd
 }
@@ -183,14 +183,14 @@ func newTicketsCreateCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "create",
-		Short: "Create a ticket from a JSON body, template, or --set overrides",
+		Short: "Cria um chamado a partir de corpo JSON, template ou substituições --set",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			body, err := loadBody(file, template, templateFile, sets)
 			if err != nil {
 				return err
 			}
 			if len(body) == 0 {
-				return errors.New("no body fields supplied; pass --file, --from-template[-file], or --set key=value")
+				return errors.New("nenhum campo informado; passe --file, --from-template[-file] ou --set chave=valor")
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -205,11 +205,11 @@ func newTicketsCreateCmd() *cobra.Command {
 			return renderJSON(cmd.OutOrStdout(), raw, r.output, "tickets", nil)
 		},
 	}
-	cmd.Flags().StringVarP(&file, "file", "f", "", "path to JSON body")
-	cmd.Flags().StringVar(&template, "from-template", "", "load ~/.movidesk/templates/<name>.json")
-	cmd.Flags().StringVar(&templateFile, "from-template-file", "", "load template from a specific path")
-	cmd.Flags().StringSliceVar(&sets, "set", nil, "override fields, e.g. --set type=2 --set subject=Hello")
-	cmd.Flags().BoolVar(&returnAllProperties, "return-all", false, "ask Movidesk to return the full ticket")
+	cmd.Flags().StringVarP(&file, "file", "f", "", "caminho do corpo JSON")
+	cmd.Flags().StringVar(&template, "from-template", "", "carrega ~/.movidesk/templates/<nome>.json")
+	cmd.Flags().StringVar(&templateFile, "from-template-file", "", "carrega template de um caminho específico")
+	cmd.Flags().StringSliceVar(&sets, "set", nil, "sobrescreve campos, ex.: --set type=2 --set subject=Olá")
+	cmd.Flags().BoolVar(&returnAllProperties, "return-all", false, "pede ao Movidesk pra retornar o chamado completo")
 	return cmd
 }
 
@@ -222,19 +222,19 @@ func newTicketsUpdateCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "update <id>",
-		Short: "Patch a ticket by id",
+		Short: "Aplica patch em um chamado por id",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
-				return fmt.Errorf("invalid id %q", args[0])
+				return fmt.Errorf("id inválido %q", args[0])
 			}
 			body, err := loadBody(file, template, templateFile, sets)
 			if err != nil {
 				return err
 			}
 			if len(body) == 0 {
-				return errors.New("no fields to update; pass --file, --from-template[-file], or --set key=value")
+				return errors.New("nenhum campo para atualizar; passe --file, --from-template[-file] ou --set chave=valor")
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -252,10 +252,10 @@ func newTicketsUpdateCmd() *cobra.Command {
 			return renderJSON(cmd.OutOrStdout(), raw, r.output, "tickets", nil)
 		},
 	}
-	cmd.Flags().StringVarP(&file, "file", "f", "", "path to JSON patch body")
-	cmd.Flags().StringVar(&template, "from-template", "", "load ~/.movidesk/templates/<name>.json")
-	cmd.Flags().StringVar(&templateFile, "from-template-file", "", "load template from a specific path")
-	cmd.Flags().StringSliceVar(&sets, "set", nil, "override fields inline")
+	cmd.Flags().StringVarP(&file, "file", "f", "", "caminho do corpo JSON de patch")
+	cmd.Flags().StringVar(&template, "from-template", "", "carrega ~/.movidesk/templates/<nome>.json")
+	cmd.Flags().StringVar(&templateFile, "from-template-file", "", "carrega template de um caminho específico")
+	cmd.Flags().StringSliceVar(&sets, "set", nil, "sobrescreve campos inline")
 	return cmd
 }
 
@@ -263,12 +263,12 @@ func newTicketsHTMLCmd() *cobra.Command {
 	var actionID int
 	cmd := &cobra.Command{
 		Use:   "html <id>",
-		Short: "Get the HTML body of a ticket (or one of its actions)",
+		Short: "Obtém o corpo HTML de um chamado (ou de uma de suas ações)",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
-				return fmt.Errorf("invalid id %q", args[0])
+				return fmt.Errorf("id inválido %q", args[0])
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -295,14 +295,14 @@ func newTicketsHTMLCmd() *cobra.Command {
 			return renderJSON(cmd.OutOrStdout(), raw, r.output, "", nil)
 		},
 	}
-	cmd.Flags().IntVar(&actionID, "action-id", 0, "specific action id (default: ticket description)")
+	cmd.Flags().IntVar(&actionID, "action-id", 0, "id de ação específica (padrão: descrição do chamado)")
 	return cmd
 }
 
 func newTicketsPastCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "past",
-		Short: "Manage tickets older than 90 days (/tickets/past)",
+		Short: "Gerencia chamados com mais de 90 dias (/tickets/past)",
 	}
 	cmd.AddCommand(newTicketsPastListCmd())
 	return cmd
@@ -315,7 +315,7 @@ func newTicketsPastListCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List archived tickets (older than 90 days)",
+		Short: "Lista chamados arquivados (mais de 90 dias)",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -349,7 +349,7 @@ func newTicketsPastListCmd() *cobra.Command {
 func newTicketsMergedCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "merged",
-		Short: "Inspect merged tickets (/tickets/merged)",
+		Short: "Inspeciona chamados mesclados (/tickets/merged)",
 	}
 	cmd.AddCommand(newTicketsMergedListCmd())
 	return cmd
@@ -362,7 +362,7 @@ func newTicketsMergedListCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List merged tickets",
+		Short: "Lista chamados mesclados",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -401,18 +401,18 @@ func newTicketsAttachCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "attach <ticket-id>",
-		Short: "Upload a file to a ticket action via /ticketFileUpload",
+		Short: "Envia um arquivo para uma ação de chamado via /ticketFileUpload",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ticketID, err := strconv.Atoi(args[0])
 			if err != nil {
-				return fmt.Errorf("invalid ticket id %q", args[0])
+				return fmt.Errorf("id do chamado inválido %q", args[0])
 			}
 			if file == "" {
-				return errors.New("--file is required")
+				return errors.New("--file é obrigatório")
 			}
 			if actionID <= 0 {
-				return errors.New("--action-id is required (and must be > 0)")
+				return errors.New("--action-id é obrigatório (e deve ser > 0)")
 			}
 
 			fh, err := os.Open(file)
@@ -438,9 +438,9 @@ func newTicketsAttachCmd() *cobra.Command {
 			return renderJSON(cmd.OutOrStdout(), body, r.output, "", nil)
 		},
 	}
-	cmd.Flags().IntVar(&actionID, "action-id", 0, "action id to attach the file to (required)")
-	cmd.Flags().StringVar(&file, "file", "", "path to the local file (required)")
-	cmd.Flags().StringVar(&name, "name", "", "filename to record on Movidesk (default: basename of --file)")
+	cmd.Flags().IntVar(&actionID, "action-id", 0, "id da ação onde anexar o arquivo (obrigatório)")
+	cmd.Flags().StringVar(&file, "file", "", "caminho do arquivo local (obrigatório)")
+	cmd.Flags().StringVar(&name, "name", "", "nome do arquivo a registrar no Movidesk (padrão: basename de --file)")
 	_ = cmd.MarkFlagRequired("file")
 	_ = cmd.MarkFlagRequired("action-id")
 	return cmd

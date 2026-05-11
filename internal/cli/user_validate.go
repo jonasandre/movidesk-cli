@@ -14,7 +14,7 @@ import (
 // businessName so the caller can echo "Default user: u-123 (Joe Doe)".
 func validateUser(ctx context.Context, baseURL, token, userID string) (string, error) {
 	if userID == "" {
-		return "", fmt.Errorf("user id is empty")
+		return "", fmt.Errorf("id de usuário vazio")
 	}
 	c := movidesk.New(baseURL, token)
 	c.HTTP.Timeout = 15 * time.Second
@@ -33,10 +33,10 @@ func validateUser(ctx context.Context, baseURL, token, userID string) (string, e
 		BusinessName string `json:"businessName"`
 	}
 	if err := json.Unmarshal(body, &p); err != nil {
-		return "", fmt.Errorf("decode person: %w", err)
+		return "", fmt.Errorf("decodificar pessoa: %w", err)
 	}
 	if p.ID == "" {
-		return "", fmt.Errorf("user %q not found", userID)
+		return "", fmt.Errorf("usuário %q não encontrado", userID)
 	}
 	return p.BusinessName, nil
 }

@@ -1,6 +1,6 @@
 ## movidesk-cli tickets actions add
 
-Append a new action to a ticket
+Adiciona uma nova ação a um chamado
 
 ```
 movidesk-cli tickets actions add <ticket-id> [flags]
@@ -9,30 +9,30 @@ movidesk-cli tickets actions add <ticket-id> [flags]
 ### Options
 
 ```
-      --description string        action body (HTML on writes)
-      --description-file string   read body from a file
+      --description string        corpo da ação (HTML em escritas)
+      --description-file string   lê o corpo de um arquivo
   -h, --help                      help for add
-      --internal                  alias for --type 1
-      --justification string      status justification
-      --public                    alias for --type 2
-      --status string             transition the ticket to a status
-      --tag strings               tag (repeatable)
-      --type int                  action type: 1=internal, 2=public
+      --internal                  alias para --type 1
+      --justification string      justificativa do status
+      --public                    alias para --type 2
+      --status string             transiciona o chamado para um status
+      --tag strings               tag (repetível)
+      --type int                  tipo da ação: 1=interna, 2=pública
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --compact         compact JSON output (no indentation)
-      --no-color        disable colored output
-      --no-retry        disable automatic retry on 429/5xx
-  -o, --output string   output format: json|table|csv (default: tenant or 'json')
-      --tenant string   tenant name (overrides current tenant; env: MOVIDESK_TENANT)
-      --user string     default user id (Cod. Ref.) for createdBy on writes; overrides tenant config; env: MOVIDESK_USER
-  -v, --verbose         verbose logging to stderr
+      --compact         JSON compacto (sem indentação)
+      --no-color        desativa cores na saída
+      --no-retry        desativa retentativa automática em 429/5xx
+  -o, --output string   formato de saída: json|table|csv (padrão: do tenant ou 'json')
+      --tenant string   nome do tenant (sobrepõe o tenant atual; env: MOVIDESK_TENANT)
+      --user string     id do usuário padrão (Cod. Ref.) usado em createdBy nas escritas; sobrepõe a configuração do tenant; env: MOVIDESK_USER
+  -v, --verbose         log detalhado em stderr
 ```
 
 ### SEE ALSO
 
-* [movidesk-cli tickets actions](movidesk-cli_tickets_actions.md)	 - Inspect and modify ticket actions
+* [movidesk-cli tickets actions](movidesk-cli_tickets_actions.md)	 - Inspeciona e modifica ações de chamados
 

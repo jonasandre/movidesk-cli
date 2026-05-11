@@ -17,16 +17,16 @@ func loadBody(file, template, templateFile string, sets []string) (map[string]an
 	var body map[string]any
 	switch {
 	case file != "" && (template != "" || templateFile != ""):
-		return nil, fmt.Errorf("--file is mutually exclusive with --from-template")
+		return nil, fmt.Errorf("--file e --from-template são mutuamente exclusivos")
 	case template != "" && templateFile != "":
-		return nil, fmt.Errorf("--from-template is mutually exclusive with --from-template-file")
+		return nil, fmt.Errorf("--from-template e --from-template-file são mutuamente exclusivos")
 	case file != "":
 		raw, err := os.ReadFile(file)
 		if err != nil {
-			return nil, fmt.Errorf("read body file: %w", err)
+			return nil, fmt.Errorf("ler arquivo de corpo: %w", err)
 		}
 		if err := json.Unmarshal(raw, &body); err != nil {
-			return nil, fmt.Errorf("parse body file: %w", err)
+			return nil, fmt.Errorf("interpretar arquivo de corpo: %w", err)
 		}
 	case template != "":
 		dir, err := config.Dir()
@@ -35,18 +35,18 @@ func loadBody(file, template, templateFile string, sets []string) (map[string]an
 		}
 		raw, err := os.ReadFile(filepath.Join(dir, "templates", template+".json"))
 		if err != nil {
-			return nil, fmt.Errorf("read template %q: %w", template, err)
+			return nil, fmt.Errorf("ler template %q: %w", template, err)
 		}
 		if err := json.Unmarshal(raw, &body); err != nil {
-			return nil, fmt.Errorf("parse template %q: %w", template, err)
+			return nil, fmt.Errorf("interpretar template %q: %w", template, err)
 		}
 	case templateFile != "":
 		raw, err := os.ReadFile(templateFile)
 		if err != nil {
-			return nil, fmt.Errorf("read template file: %w", err)
+			return nil, fmt.Errorf("ler arquivo de template: %w", err)
 		}
 		if err := json.Unmarshal(raw, &body); err != nil {
-			return nil, fmt.Errorf("parse template file: %w", err)
+			return nil, fmt.Errorf("interpretar arquivo de template: %w", err)
 		}
 	default:
 		body = map[string]any{}
@@ -55,7 +55,7 @@ func loadBody(file, template, templateFile string, sets []string) (map[string]an
 	for _, kv := range sets {
 		k, v, ok := strings.Cut(kv, "=")
 		if !ok {
-			return nil, fmt.Errorf("--set value must be key=value, got %q", kv)
+			return nil, fmt.Errorf("valor --set deve ser chave=valor, recebido %q", kv)
 		}
 		body[k] = parseSetValue(v)
 	}

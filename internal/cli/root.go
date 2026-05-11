@@ -21,24 +21,24 @@ var flags globalFlags
 func newRootCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "movidesk-cli",
-		Short: "CLI for the Movidesk REST API",
-		Long: `movidesk-cli is a command-line interface for the Movidesk REST API.
+		Short: "CLI para a API REST do Movidesk",
+		Long: `movidesk-cli é uma interface de linha de comando para a API REST do Movidesk.
 
-It supports multiple tenants (each with its own token stored in the OS keychain),
-formats output as JSON, table or CSV, and respects Movidesk's rate limit of
-10 requests per minute with automatic retry on 429.`,
+Suporta múltiplos tenants (cada um com seu próprio token armazenado no chaveiro
+do sistema operacional), formata a saída como JSON, tabela ou CSV, e respeita o
+limite de 10 requisições por minuto do Movidesk com retentativa automática em 429.`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		Version:       version.String(),
 	}
 
-	cmd.PersistentFlags().StringVar(&flags.tenant, "tenant", "", "tenant name (overrides current tenant; env: MOVIDESK_TENANT)")
-	cmd.PersistentFlags().StringVarP(&flags.output, "output", "o", "", "output format: json|table|csv (default: tenant or 'json')")
-	cmd.PersistentFlags().BoolVar(&flags.noColor, "no-color", false, "disable colored output")
-	cmd.PersistentFlags().BoolVarP(&flags.verbose, "verbose", "v", false, "verbose logging to stderr")
-	cmd.PersistentFlags().BoolVar(&flags.noRetry, "no-retry", false, "disable automatic retry on 429/5xx")
-	cmd.PersistentFlags().BoolVar(&flags.compact, "compact", false, "compact JSON output (no indentation)")
-	cmd.PersistentFlags().StringVar(&flags.user, "user", "", "default user id (Cod. Ref.) for createdBy on writes; overrides tenant config; env: MOVIDESK_USER")
+	cmd.PersistentFlags().StringVar(&flags.tenant, "tenant", "", "nome do tenant (sobrepõe o tenant atual; env: MOVIDESK_TENANT)")
+	cmd.PersistentFlags().StringVarP(&flags.output, "output", "o", "", "formato de saída: json|table|csv (padrão: do tenant ou 'json')")
+	cmd.PersistentFlags().BoolVar(&flags.noColor, "no-color", false, "desativa cores na saída")
+	cmd.PersistentFlags().BoolVarP(&flags.verbose, "verbose", "v", false, "log detalhado em stderr")
+	cmd.PersistentFlags().BoolVar(&flags.noRetry, "no-retry", false, "desativa retentativa automática em 429/5xx")
+	cmd.PersistentFlags().BoolVar(&flags.compact, "compact", false, "JSON compacto (sem indentação)")
+	cmd.PersistentFlags().StringVar(&flags.user, "user", "", "id do usuário padrão (Cod. Ref.) usado em createdBy nas escritas; sobrepõe a configuração do tenant; env: MOVIDESK_USER")
 
 	cmd.AddCommand(newAuthCmd())
 	cmd.AddCommand(newTicketsCmd())

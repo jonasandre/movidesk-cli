@@ -1,50 +1,51 @@
 # movidesk-cli
 
-A command-line interface for the [Movidesk](https://www.movidesk.com)
-public REST API.
+Interface de linha de comando para a API REST pública do
+[Movidesk](https://www.movidesk.com).
 
-- Multi-tenant: keep separate tokens for sandbox/staging/production and
-  switch with one command.
-- Tokens stored in the OS keychain (macOS Keychain, Windows Credential
-  Manager, Linux libsecret/kwallet); encrypted file fallback for headless
-  environments.
-- OData passthrough on every list endpoint: `--filter`, `--select`,
-  `--expand`, `--orderby`, `--top`, `--skip`, plus auto-pagination via
+- Multi-tenant: mantenha tokens separados para sandbox/staging/produção e
+  alterne com um único comando.
+- Tokens armazenados no chaveiro do sistema operacional (macOS Keychain,
+  Windows Credential Manager, Linux libsecret/kwallet); fallback em
+  arquivo criptografado para ambientes headless.
+- Passthrough OData em todo endpoint list: `--filter`, `--select`,
+  `--expand`, `--orderby`, `--top`, `--skip`, mais auto-paginação via
   `--all`.
-- Output as JSON (default), human-readable table, or CSV.
-- Honors Movidesk's 10 req/min rate limit with automatic backoff and
-  `Retry-After` support.
-- Per-tenant default user that the CLI auto-injects as `createdBy` on the
-  writes that need attribution.
+- Saída em JSON (padrão), tabela legível ou CSV.
+- Respeita o limite de 10 requisições/minuto do Movidesk com backoff
+  automático e suporte ao header `Retry-After`.
+- Usuário padrão por tenant que o CLI injeta automaticamente em
+  `createdBy` nas escritas que exigem atribuição.
 
-## Install
+## Instalação
 
 ```bash
-# Homebrew (macOS / Linux) — distributed as a Cask
+# Homebrew (macOS / Linux) — distribuído como Cask
 brew install --cask jonasandre/movidesk/movidesk-cli
 
-# Pre-built binary — pick your archive at:
+# Binário pré-compilado — escolha o arquivo em:
 #   https://github.com/jonasandre/movidesk-cli/releases
 
-# From source
+# Compilando da fonte
 go install github.com/jonasandre/movidesk-cli/cmd/movidesk-cli@latest
 ```
 
-> **macOS first-run note.** The released binary is not yet
-> Apple-notarized, so Gatekeeper quarantines it on first launch and the
-> process is killed silently (exit `137`). Strip the quarantine flag
-> once after install:
+> **Nota macOS — primeira execução.** O binário publicado ainda não é
+> notarizado pela Apple, então o Gatekeeper o coloca em quarentena na
+> primeira execução e o processo é encerrado silenciosamente
+> (exit `137`). Remova o atributo de quarentena uma vez após a
+> instalação:
 >
 > ```bash
 > xattr -dr com.apple.quarantine "$(brew --caskroom)/movidesk-cli"
-> # or, without Homebrew:
-> xattr -dr com.apple.quarantine /path/to/movidesk-cli
+> # ou, sem Homebrew:
+> xattr -dr com.apple.quarantine /caminho/para/movidesk-cli
 > ```
 >
-> Re-run after each upgrade until proper signing/notarization lands
-> (tracked in [`docs/RELEASING.md`](./docs/RELEASING.md)).
+> Repita após cada atualização até que a assinatura/notarização seja
+> implantada (acompanhado em [`docs/RELEASING.md`](./docs/RELEASING.md)).
 
-Enable shell tab-completion (Cobra ships bash, zsh, fish, PowerShell):
+Habilitar autocompletar no shell (Cobra entrega bash, zsh, fish, PowerShell):
 
 ```bash
 movidesk-cli completion zsh  > "${fpath[1]}/_movidesk-cli"
@@ -52,32 +53,32 @@ movidesk-cli completion bash > /usr/local/etc/bash_completion.d/movidesk-cli
 movidesk-cli completion fish > ~/.config/fish/completions/movidesk-cli.fish
 ```
 
-The Homebrew Cask registers `bash`, `zsh`, and `fish` completions
-automatically; the snippets above are only needed for installs outside
-Homebrew.
+O Cask do Homebrew registra automaticamente as completions de `bash`,
+`zsh` e `fish`; os snippets acima só são necessários para instalações
+fora do Homebrew.
 
-## Quickstart
+## Início rápido
 
 ```bash
-# 1. Add a tenant. The token is read from a hidden prompt and validated
-#    against GET /persons?$top=1 before being stored. Optionally configure
-#    a default user (Cod. Ref.) for createdBy attribution.
-movidesk-cli auth login --tenant prod --label "Acme Production" --make-default
+# 1. Adicione um tenant. O token é lido em prompt oculto e validado
+#    contra GET /persons?$top=1 antes de ser armazenado. Opcionalmente
+#    configure um usuário padrão (Cod. Ref.) para atribuição em createdBy.
+movidesk-cli auth login --tenant prod --label "Acme Produção" --make-default
 
-# 2. List configured tenants (token never displayed).
+# 2. Listar tenants configurados (o token nunca é exibido).
 movidesk-cli auth list
 
-# 3. Verify the connection.
+# 3. Validar a conexão.
 movidesk-cli auth status
 
-# 4. Use it.
+# 4. Usar.
 movidesk-cli tickets list --top 5 --output table
 ```
 
-Full reference for every command lives under [`docs/cli/`](./docs/cli/).
-A few common entry points:
+A referência completa de cada comando fica em [`docs/cli/`](./docs/cli/).
+Alguns pontos de entrada comuns:
 
-| Family | Highlights |
+| Família | Destaques |
 |---|---|
 | `auth` | `login`, `list`, `switch`, `status`, `set-user`, `logout`, `token` |
 | `tickets` | `list`, `get`, `create`, `update`, `attach`, `actions`, `clients`, `relations`, `timeline`, `customfields`, `past`, `merged`, `html` |
@@ -89,103 +90,111 @@ A few common entry points:
 | `kb` | `articles get` |
 | `telephony` | `queue`, `nonqueue`, `made-call-link` |
 | `customfields` | `options add/rename/remove` |
-| `query` | raw OData escape hatch |
+| `query` | escape hatch OData bruto |
 
-`movidesk-cli <command> --help` always shows the local flags. The reference
-pages under `docs/cli/` are auto-generated and cover every subcommand.
+`movidesk-cli <comando> --help` sempre exibe as flags locais. As páginas
+de referência em `docs/cli/` são geradas automaticamente e cobrem
+todo subcomando.
 
-## Conventions
+## Convenções
 
-**Token & tenant overrides** — `--tenant <name>` or `MOVIDESK_TENANT` to
-target a specific tenant; `MOVIDESK_TOKEN` short-circuits the keychain
-(useful in CI).
+**Token e tenant override** — `--tenant <nome>` ou `MOVIDESK_TENANT`
+para mirar um tenant específico; `MOVIDESK_TOKEN` ignora o chaveiro
+(útil em CI).
 
-**Default user** — `--user <id>` or `MOVIDESK_USER` overrides the per-tenant
-configured user. Auto-injected as `createdBy` on `tickets create` and
-`tickets actions add` only — never on updates, never when the body already
-provides one.
+**Usuário padrão** — `--user <id>` ou `MOVIDESK_USER` sobrepõe o
+usuário configurado no tenant. Injetado em `createdBy` apenas em
+`tickets create` e `tickets actions add` — nunca em updates, nunca
+quando o corpo já fornece um.
 
-**Body input** — write commands (`create`, `update`, ...) accept three
-input modes, in order of precedence:
+**Entrada de corpo** — comandos de escrita (`create`, `update`, ...)
+aceitam três modos de entrada, em ordem de precedência:
 
-1. `--file <path>` — full JSON body.
-2. `--from-template <name>` / `--from-template-file <path>` — reusable
-   templates under `~/.movidesk/templates/<name>.json`.
-3. `--set key=value` (repeatable) — inline overrides; values are JSON-parsed
-   first, falling back to strings (`--set type=2` → number,
-   `--set tags='["a","b"]'` → array).
+1. `--file <caminho>` — corpo JSON completo.
+2. `--from-template <nome>` / `--from-template-file <caminho>` —
+   templates reutilizáveis em `~/.movidesk/templates/<nome>.json`.
+3. `--set chave=valor` (repetível) — sobrescritas inline; os valores
+   são interpretados primeiro como JSON, com fallback para string
+   (`--set type=2` → número, `--set tags='["a","b"]'` → array).
 
-**Output formats** — `--output json|table|csv`, plus `--compact` for
-single-line JSON, `--columns id,subject,owner.businessName` to override
-table/CSV columns (dot-paths supported for nested fields).
+**Formatos de saída** — `--output json|table|csv`, mais `--compact`
+para JSON em linha única, `--columns id,subject,owner.businessName`
+para sobrescrever as colunas table/CSV (dot-paths suportados para
+campos aninhados).
 
-**Rate limiting** — every request goes through an in-process 10 req/min
-limiter and retries 429/5xx with `Retry-After` honored. `--no-retry`
-disables retries when debugging.
+**Rate limiting** — toda requisição passa pelo limiter interno de 10
+req/min e tenta novamente em 429/5xx respeitando `Retry-After`.
+`--no-retry` desativa retentativas pra debug.
 
-## Configuration files
+## Arquivos de configuração
 
-- `~/.movidesk/config.yaml` — tenant list, current tenant, defaults.
-  Mode `0600`.
-- `~/.movidesk/credentials.enc` — encrypted token fallback, only used when
-  the OS keychain is unavailable. AES-GCM, mode `0600`.
-- `~/.movidesk/templates/<name>.json` — reusable bodies for write commands.
-- `~/.movidesk/<tenant>/customfields.yaml` — per-tenant catalog mapping
-  human labels to numeric custom-field IDs (Movidesk has no public API to
-  discover them).
+- `~/.movidesk/config.yaml` — lista de tenants, tenant atual,
+  padrões. Modo `0600`.
+- `~/.movidesk/credentials.enc` — fallback criptografado do token,
+  usado apenas quando o chaveiro do SO não está disponível. AES-GCM,
+  modo `0600`.
+- `~/.movidesk/templates/<nome>.json` — corpos reutilizáveis para
+  comandos de escrita.
+- `~/.movidesk/<tenant>/customfields.yaml` — catálogo por tenant que
+  mapeia rótulos legíveis para ids numéricos de campo personalizado
+  (Movidesk não expõe API pública para descobri-los).
 
-Set `MOVIDESK_HOME` to relocate the directory — handy for tests and
-ephemeral CI environments.
+Defina `MOVIDESK_HOME` para realocar o diretório — útil em testes e
+ambientes de CI efêmeros.
 
-> **Never commit these files.** They grant the same access as the user
-> that owns them.
+> **Nunca commite esses arquivos.** Eles concedem o mesmo acesso do
+> usuário dono.
 
-## Caveats worth knowing up front
+## Pegadinhas que vale saber de cara
 
-- **PATCH on `/tickets` replaces array-valued fields** like
-  `customFieldValues`. The CLI's typed write helpers go through
-  read-merge-patch so you only describe the change. If you build your own
-  body, send the full array.
-- **Movidesk does not expose an API to list custom-field definitions.**
-  Populate the local catalog from the IDs visible in the Movidesk web UI.
-- **`tickets list` only returns tickets updated within the last 90 days.**
-  Older ones live on `/tickets/past` (`tickets past list`).
-- **Activities, surveys/responses use cursor pagination**, not OData
-  (`--limit` / `--starting-after`); use `--all` to walk every page.
+- **PATCH em `/tickets` substitui campos com valor de array** como
+  `customFieldValues`. Os helpers tipados de escrita do CLI passam
+  por read-merge-patch, então você só descreve a alteração. Se montar
+  o corpo manualmente, envie o array completo.
+- **O Movidesk não expõe API para listar definições de campos
+  personalizados.** Popule o catálogo local a partir dos ids visíveis
+  na UI do Movidesk.
+- **`tickets list` retorna apenas chamados atualizados nos últimos 90
+  dias.** Os mais antigos ficam em `/tickets/past`
+  (`tickets past list`).
+- **Activities e surveys/responses usam paginação por cursor**, não
+  OData (`--limit` / `--starting-after`); use `--all` pra percorrer
+  todas as páginas.
 
-## Development
+## Desenvolvimento
 
 ```bash
-make build              # build binary into ./bin
-make test               # race-enabled, no cache
+make build              # compila o binário em ./bin
+make test               # com race detector, sem cache
 make lint               # golangci-lint
-make cover              # coverage summary
-make docs               # regenerate docs/cli/*.md from Cobra
+make cover              # resumo de cobertura
+make docs               # regenera docs/cli/*.md a partir do Cobra
 make run ARGS="auth list"
-make release-check      # validate .goreleaser.yaml
-make release-snapshot   # local goreleaser dry-run
+make release-check      # valida .goreleaser.yaml
+make release-snapshot   # dry-run local do goreleaser
 ```
 
-For maintainers cutting releases, see [`docs/RELEASING.md`](./docs/RELEASING.md).
+Para maintainers preparando releases, veja [`docs/RELEASING.md`](./docs/RELEASING.md).
 
-Module layout:
+Layout do módulo:
 
 ```
-cmd/movidesk-cli/      entry point
-cmd/gen-docs/          docs/cli/ generator
-internal/cli/          Cobra commands
-internal/config/       multi-tenant YAML config
-internal/auth/         keychain + encrypted-file token store
+cmd/movidesk-cli/      ponto de entrada
+cmd/gen-docs/          gerador de docs/cli/
+internal/cli/          comandos Cobra
+internal/config/       config YAML multi-tenant
+internal/auth/         chaveiro + armazenamento de token em arquivo
 internal/movidesk/     SDK: HTTP client, rate limiter, retry, OData builder
-internal/output/       JSON / table / CSV formatters
-internal/version/      build metadata (set via -ldflags)
+internal/output/       formatters JSON / table / CSV
+internal/version/      metadados de build (definidos via -ldflags)
 ```
 
-## Contributing
+## Contribuindo
 
-Issues and PRs welcome. Please run `make lint test` before submitting.
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for development conventions.
+Issues e PRs são bem-vindos. Por favor rode `make lint test` antes de
+enviar. Veja [CONTRIBUTING.md](./CONTRIBUTING.md) para convenções de
+desenvolvimento.
 
-## License
+## Licença
 
-MIT — see [LICENSE](./LICENSE).
+MIT — veja [LICENSE](./LICENSE).

@@ -32,13 +32,13 @@ func New(c *movidesk.Client) *Service { return &Service{C: c} }
 // source path.
 func (s *Service) Upload(ctx context.Context, ticketID, actionID int, name string, r io.Reader) ([]byte, error) {
 	if ticketID <= 0 {
-		return nil, fmt.Errorf("ticket id required")
+		return nil, fmt.Errorf("id do chamado obrigatório")
 	}
 	if actionID <= 0 {
-		return nil, fmt.Errorf("action id required")
+		return nil, fmt.Errorf("id da ação obrigatório")
 	}
 	if name == "" {
-		return nil, fmt.Errorf("filename required")
+		return nil, fmt.Errorf("nome do arquivo obrigatório")
 	}
 
 	var buf bytes.Buffer

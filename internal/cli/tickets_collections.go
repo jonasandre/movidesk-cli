@@ -14,7 +14,7 @@ import (
 func newTicketsActionsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "actions",
-		Short: "Inspect and modify ticket actions",
+		Short: "Inspeciona e modifica ações de chamados",
 	}
 	cmd.AddCommand(
 		newTicketsActionsListCmd(),
@@ -30,12 +30,12 @@ func newTicketsActionsListCmd() *cobra.Command {
 	var cf columnsFlag
 	cmd := &cobra.Command{
 		Use:   "list <ticket-id>",
-		Short: "List actions of a ticket",
+		Short: "Lista as ações de um chamado",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
-				return fmt.Errorf("invalid id %q", args[0])
+				return fmt.Errorf("id inválido %q", args[0])
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -56,12 +56,12 @@ func newTicketsActionsGetCmd() *cobra.Command {
 	var actionID int
 	cmd := &cobra.Command{
 		Use:   "get <ticket-id> --action-id N",
-		Short: "Get one action by id",
+		Short: "Obtém uma ação pelo id",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
-				return fmt.Errorf("invalid ticket id %q", args[0])
+				return fmt.Errorf("id do chamado inválido %q", args[0])
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -74,7 +74,7 @@ func newTicketsActionsGetCmd() *cobra.Command {
 			return renderRows(cmd.OutOrStdout(), a, r.output, "", nil)
 		},
 	}
-	cmd.Flags().IntVar(&actionID, "action-id", 0, "action id (required)")
+	cmd.Flags().IntVar(&actionID, "action-id", 0, "id da ação (obrigatório)")
 	_ = cmd.MarkFlagRequired("action-id")
 	return cmd
 }
@@ -92,15 +92,15 @@ func newTicketsActionsAddCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "add <ticket-id>",
-		Short: "Append a new action to a ticket",
+		Short: "Adiciona uma nova ação a um chamado",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
-				return fmt.Errorf("invalid ticket id %q", args[0])
+				return fmt.Errorf("id do chamado inválido %q", args[0])
 			}
 			if public && internal {
-				return errors.New("--public and --internal are mutually exclusive")
+				return errors.New("--public e --internal são mutuamente exclusivos")
 			}
 			if internal {
 				atype = 1
@@ -108,12 +108,12 @@ func newTicketsActionsAddCmd() *cobra.Command {
 				atype = 2
 			}
 			if atype != 1 && atype != 2 {
-				return errors.New("specify --type 1 (internal) or --type 2 (public), or use --internal/--public")
+				return errors.New("informe --type 1 (interno) ou --type 2 (público), ou use --internal/--public")
 			}
 			body := descr
 			if descrFile != "" {
 				if descr != "" {
-					return errors.New("--description and --description-file are mutually exclusive")
+					return errors.New("--description e --description-file são mutuamente exclusivos")
 				}
 				raw, err := os.ReadFile(descrFile)
 				if err != nil {
@@ -122,7 +122,7 @@ func newTicketsActionsAddCmd() *cobra.Command {
 				body = string(raw)
 			}
 			if body == "" {
-				return errors.New("--description (or --description-file) is required")
+				return errors.New("--description (ou --description-file) é obrigatório")
 			}
 			a := tickets.Action{
 				Type:          atype,
@@ -149,14 +149,14 @@ func newTicketsActionsAddCmd() *cobra.Command {
 			return renderJSON(cmd.OutOrStdout(), raw, r.output, "tickets", nil)
 		},
 	}
-	cmd.Flags().IntVar(&atype, "type", 0, "action type: 1=internal, 2=public")
-	cmd.Flags().StringVar(&descr, "description", "", "action body (HTML on writes)")
-	cmd.Flags().StringVar(&descrFile, "description-file", "", "read body from a file")
-	cmd.Flags().BoolVar(&public, "public", false, "alias for --type 2")
-	cmd.Flags().BoolVar(&internal, "internal", false, "alias for --type 1")
-	cmd.Flags().StringSliceVar(&tags, "tag", nil, "tag (repeatable)")
-	cmd.Flags().StringVar(&justification, "justification", "", "status justification")
-	cmd.Flags().StringVar(&statusOverride, "status", "", "transition the ticket to a status")
+	cmd.Flags().IntVar(&atype, "type", 0, "tipo da ação: 1=interna, 2=pública")
+	cmd.Flags().StringVar(&descr, "description", "", "corpo da ação (HTML em escritas)")
+	cmd.Flags().StringVar(&descrFile, "description-file", "", "lê o corpo de um arquivo")
+	cmd.Flags().BoolVar(&public, "public", false, "alias para --type 2")
+	cmd.Flags().BoolVar(&internal, "internal", false, "alias para --type 1")
+	cmd.Flags().StringSliceVar(&tags, "tag", nil, "tag (repetível)")
+	cmd.Flags().StringVar(&justification, "justification", "", "justificativa do status")
+	cmd.Flags().StringVar(&statusOverride, "status", "", "transiciona o chamado para um status")
 	return cmd
 }
 
@@ -167,15 +167,15 @@ func newTicketsActionsUpdateCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "update <ticket-id>",
-		Short: "Edit an existing action by id",
+		Short: "Edita uma ação existente pelo id",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
-				return fmt.Errorf("invalid ticket id %q", args[0])
+				return fmt.Errorf("id do chamado inválido %q", args[0])
 			}
 			if descr == "" {
-				return errors.New("--description is required")
+				return errors.New("--description é obrigatório")
 			}
 			a := tickets.Action{ID: actionID, Description: descr}
 			r, err := resolveClient(cmd)
@@ -193,8 +193,8 @@ func newTicketsActionsUpdateCmd() *cobra.Command {
 			return renderJSON(cmd.OutOrStdout(), raw, r.output, "tickets", nil)
 		},
 	}
-	cmd.Flags().IntVar(&actionID, "action-id", 0, "action id (required)")
-	cmd.Flags().StringVar(&descr, "description", "", "new description")
+	cmd.Flags().IntVar(&actionID, "action-id", 0, "id da ação (obrigatório)")
+	cmd.Flags().StringVar(&descr, "description", "", "nova descrição")
 	_ = cmd.MarkFlagRequired("action-id")
 	return cmd
 }
@@ -203,12 +203,12 @@ func newTicketsActionsDeleteCmd() *cobra.Command {
 	var actionID int
 	cmd := &cobra.Command{
 		Use:   "delete <ticket-id>",
-		Short: "Soft-delete an action (sets isDeleted: true)",
+		Short: "Marca uma ação como excluída (soft delete: isDeleted: true)",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
-				return fmt.Errorf("invalid ticket id %q", args[0])
+				return fmt.Errorf("id do chamado inválido %q", args[0])
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -225,13 +225,13 @@ func newTicketsActionsDeleteCmd() *cobra.Command {
 			return renderJSON(cmd.OutOrStdout(), raw, r.output, "tickets", nil)
 		},
 	}
-	cmd.Flags().IntVar(&actionID, "action-id", 0, "action id (required)")
+	cmd.Flags().IntVar(&actionID, "action-id", 0, "id da ação (obrigatório)")
 	_ = cmd.MarkFlagRequired("action-id")
 	return cmd
 }
 
 func newTicketsClientsCmd() *cobra.Command {
-	cmd := &cobra.Command{Use: "clients", Short: "Inspect ticket clients"}
+	cmd := &cobra.Command{Use: "clients", Short: "Inspeciona clientes de um chamado"}
 	cmd.AddCommand(newTicketsClientsListCmd())
 	return cmd
 }
@@ -240,12 +240,12 @@ func newTicketsClientsListCmd() *cobra.Command {
 	var cf columnsFlag
 	cmd := &cobra.Command{
 		Use:   "list <ticket-id>",
-		Short: "List clients of a ticket",
+		Short: "Lista os clientes de um chamado",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
-				return fmt.Errorf("invalid ticket id %q", args[0])
+				return fmt.Errorf("id do chamado inválido %q", args[0])
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -265,12 +265,12 @@ func newTicketsClientsListCmd() *cobra.Command {
 func newTicketsRelationsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "relations <ticket-id>",
-		Short: "List parent and child tickets",
+		Short: "Lista chamados pais e filhos",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
-				return fmt.Errorf("invalid ticket id %q", args[0])
+				return fmt.Errorf("id do chamado inválido %q", args[0])
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -281,11 +281,11 @@ func newTicketsRelationsCmd() *cobra.Command {
 				return err
 			}
 			out := cmd.OutOrStdout()
-			fmt.Fprintln(out, "Parents:")
+			fmt.Fprintln(out, "Pais:")
 			if err := renderRows(out, parents, r.output, "tickets.relations", nil); err != nil {
 				return err
 			}
-			fmt.Fprintln(out, "Children:")
+			fmt.Fprintln(out, "Filhos:")
 			return renderRows(out, children, r.output, "tickets.relations", nil)
 		},
 	}
@@ -296,12 +296,12 @@ func newTicketsTimelineCmd() *cobra.Command {
 	var cf columnsFlag
 	cmd := &cobra.Command{
 		Use:   "timeline <ticket-id>",
-		Short: "Chronological merge of actions, status and owner changes",
+		Short: "Mescla cronológica de ações, mudanças de status e responsável",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
-				return fmt.Errorf("invalid ticket id %q", args[0])
+				return fmt.Errorf("id do chamado inválido %q", args[0])
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -319,7 +319,7 @@ func newTicketsTimelineCmd() *cobra.Command {
 }
 
 func newTicketsAssetsCmd() *cobra.Command {
-	cmd := &cobra.Command{Use: "assets", Short: "Inspect ticket assets"}
+	cmd := &cobra.Command{Use: "assets", Short: "Inspeciona ativos vinculados ao chamado"}
 	cmd.AddCommand(newTicketsAssetsListCmd())
 	return cmd
 }
@@ -328,12 +328,12 @@ func newTicketsAssetsListCmd() *cobra.Command {
 	var cf columnsFlag
 	cmd := &cobra.Command{
 		Use:   "list <ticket-id>",
-		Short: "List assets attached to a ticket",
+		Short: "Lista ativos vinculados ao chamado",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
-				return fmt.Errorf("invalid ticket id %q", args[0])
+				return fmt.Errorf("id do chamado inválido %q", args[0])
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -351,7 +351,7 @@ func newTicketsAssetsListCmd() *cobra.Command {
 }
 
 func newTicketsHistoriesCmd() *cobra.Command {
-	cmd := &cobra.Command{Use: "histories", Short: "Owner and status histories"}
+	cmd := &cobra.Command{Use: "histories", Short: "Históricos de responsável e status"}
 	cmd.AddCommand(newTicketsHistoriesListCmd())
 	return cmd
 }
@@ -359,12 +359,12 @@ func newTicketsHistoriesCmd() *cobra.Command {
 func newTicketsHistoriesListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list <ticket-id>",
-		Short: "List owner and status histories",
+		Short: "Lista o histórico de responsável e de status",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
-				return fmt.Errorf("invalid ticket id %q", args[0])
+				return fmt.Errorf("id do chamado inválido %q", args[0])
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -375,11 +375,11 @@ func newTicketsHistoriesListCmd() *cobra.Command {
 				return err
 			}
 			out := cmd.OutOrStdout()
-			fmt.Fprintln(out, "Owner history:")
+			fmt.Fprintln(out, "Histórico de responsável:")
 			if err := renderRows(out, owners, r.output, "tickets.histories", nil); err != nil {
 				return err
 			}
-			fmt.Fprintln(out, "Status history:")
+			fmt.Fprintln(out, "Histórico de status:")
 			return renderRows(out, statuses, r.output, "tickets.histories", nil)
 		},
 	}

@@ -13,11 +13,11 @@ import (
 func newServicesCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "services",
-		Short: "Manage Movidesk service catalog (/services)",
-		Long: `Manage entries from the Movidesk service catalog.
+		Short: "Gerencia o catálogo de serviços do Movidesk (/services)",
+		Long: `Gerencia entradas do catálogo de serviços do Movidesk.
 
-Note: PATCH replaces array-valued fields like "categories" — when updating,
-send the complete list you want to keep, not just the additions.`,
+Atenção: PATCH substitui campos com valor de array como "categories" — ao
+atualizar, envie a lista completa que deseja manter, não apenas os adicionais.`,
 	}
 	cmd.AddCommand(
 		newServicesListCmd(),
@@ -36,7 +36,7 @@ func newServicesListCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List services",
+		Short: "Lista serviços",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -71,12 +71,12 @@ func newServicesGetCmd() *cobra.Command {
 	var cf columnsFlag
 	cmd := &cobra.Command{
 		Use:   "get <id>",
-		Short: "Get one service by id",
+		Short: "Obtém um serviço pelo id",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
-				return fmt.Errorf("invalid id %q", args[0])
+				return fmt.Errorf("id inválido %q", args[0])
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -103,14 +103,14 @@ func newServicesCreateCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "create",
-		Short: "Create a service from a JSON body, template, or --set overrides",
+		Short: "Cria um serviço a partir de corpo JSON, template ou substituições --set",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			body, err := loadBody(file, template, templateFile, sets)
 			if err != nil {
 				return err
 			}
 			if len(body) == 0 {
-				return errors.New("no body fields supplied; pass --file, --from-template[-file], or --set key=value")
+				return errors.New("nenhum campo informado; passe --file, --from-template[-file] ou --set chave=valor")
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -123,11 +123,11 @@ func newServicesCreateCmd() *cobra.Command {
 			return renderJSON(cmd.OutOrStdout(), raw, r.output, "services", nil)
 		},
 	}
-	cmd.Flags().StringVarP(&file, "file", "f", "", "path to JSON body")
-	cmd.Flags().StringVar(&template, "from-template", "", "load ~/.movidesk/templates/<name>.json")
-	cmd.Flags().StringVar(&templateFile, "from-template-file", "", "load template from a specific path")
-	cmd.Flags().StringSliceVar(&sets, "set", nil, "override fields, e.g. --set name=\"Suporte\" --set isActive=true")
-	cmd.Flags().BoolVar(&returnAllProperties, "return-all", false, "ask Movidesk to return the full service")
+	cmd.Flags().StringVarP(&file, "file", "f", "", "caminho do corpo JSON")
+	cmd.Flags().StringVar(&template, "from-template", "", "carrega ~/.movidesk/templates/<nome>.json")
+	cmd.Flags().StringVar(&templateFile, "from-template-file", "", "carrega template de um caminho específico")
+	cmd.Flags().StringSliceVar(&sets, "set", nil, "sobrescreve campos, ex.: --set name=\"Suporte\" --set isActive=true")
+	cmd.Flags().BoolVar(&returnAllProperties, "return-all", false, "pede ao Movidesk pra retornar o serviço completo")
 	return cmd
 }
 
@@ -140,19 +140,19 @@ func newServicesUpdateCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "update <id>",
-		Short: "Patch a service by id",
+		Short: "Aplica patch em um serviço por id",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
-				return fmt.Errorf("invalid id %q", args[0])
+				return fmt.Errorf("id inválido %q", args[0])
 			}
 			body, err := loadBody(file, template, templateFile, sets)
 			if err != nil {
 				return err
 			}
 			if len(body) == 0 {
-				return errors.New("no fields to update; pass --file, --from-template[-file], or --set key=value")
+				return errors.New("nenhum campo para atualizar; passe --file, --from-template[-file] ou --set chave=valor")
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -169,10 +169,10 @@ func newServicesUpdateCmd() *cobra.Command {
 			return renderJSON(cmd.OutOrStdout(), raw, r.output, "services", nil)
 		},
 	}
-	cmd.Flags().StringVarP(&file, "file", "f", "", "path to JSON patch body")
-	cmd.Flags().StringVar(&template, "from-template", "", "load ~/.movidesk/templates/<name>.json")
-	cmd.Flags().StringVar(&templateFile, "from-template-file", "", "load template from a specific path")
-	cmd.Flags().StringSliceVar(&sets, "set", nil, "override fields inline")
+	cmd.Flags().StringVarP(&file, "file", "f", "", "caminho do corpo JSON de patch")
+	cmd.Flags().StringVar(&template, "from-template", "", "carrega ~/.movidesk/templates/<nome>.json")
+	cmd.Flags().StringVar(&templateFile, "from-template-file", "", "carrega template de um caminho específico")
+	cmd.Flags().StringSliceVar(&sets, "set", nil, "sobrescreve campos inline")
 	return cmd
 }
 
@@ -180,15 +180,15 @@ func newServicesDeleteCmd() *cobra.Command {
 	var force bool
 	cmd := &cobra.Command{
 		Use:   "delete <id>",
-		Short: "Permanently delete a service (DELETE /services?id=)",
+		Short: "Exclui um serviço de forma permanente (DELETE /services?id=)",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
-				return fmt.Errorf("invalid id %q", args[0])
+				return fmt.Errorf("id inválido %q", args[0])
 			}
 			if !force {
-				if err := confirm(cmd, fmt.Sprintf("Delete service %d? This cannot be undone.", id)); err != nil {
+				if err := confirm(cmd, fmt.Sprintf("Excluir o serviço %d? Esta ação é irreversível.", id)); err != nil {
 					return err
 				}
 			}
@@ -203,6 +203,6 @@ func newServicesDeleteCmd() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().BoolVar(&force, "force", false, "skip confirmation prompt")
+	cmd.Flags().BoolVar(&force, "force", false, "pula o prompt de confirmação")
 	return cmd
 }

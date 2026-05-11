@@ -16,12 +16,12 @@ import (
 func newTelephonyCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "telephony",
-		Short: "Dispatch Movidesk call events (asterisk_*)",
-		Long: `These commands fire telephony events at Movidesk so a phone system
-integration can attach calls to tickets. Two flavors:
+		Short: "Dispara eventos de chamada do Movidesk (asterisk_*)",
+		Long: `Estes comandos disparam eventos de telefonia no Movidesk para que uma
+integração de telefonia possa vincular chamadas a chamados. Duas variantes:
 
-  queue       POST /asterisk_<event>      (with queue control)
-  nonqueue    GET  /asterisk_<event>      (without queue control)
+  queue       POST /asterisk_<evento>      (com controle de fila)
+  nonqueue    GET  /asterisk_<evento>      (sem controle de fila)
 `,
 	}
 	cmd.AddCommand(
@@ -40,14 +40,14 @@ func newTelephonyQueueCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "queue",
-		Short: "POST a queue-controlled call event (--event receivedCall|transferedCall|completedCall|lostCall|canceledCall)",
+		Short: "POST de evento de chamada com controle de fila (--event receivedCall|transferedCall|completedCall|lostCall|canceledCall)",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			body, err := buildTelephonyBody(file, sets)
 			if err != nil {
 				return err
 			}
 			if event == "" {
-				return errors.New("--event is required")
+				return errors.New("--event é obrigatório")
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -60,9 +60,9 @@ func newTelephonyQueueCmd() *cobra.Command {
 			return renderJSON(cmd.OutOrStdout(), raw, r.output, "", nil)
 		},
 	}
-	cmd.Flags().StringVar(&event, "event", "", "event name (receivedCall, transferedCall, completedCall, lostCall, canceledCall)")
-	cmd.Flags().StringVarP(&file, "file", "f", "", "path to JSON body")
-	cmd.Flags().StringSliceVar(&sets, "set", nil, "override fields, e.g. --set id=abc --set queueId=1")
+	cmd.Flags().StringVar(&event, "event", "", "nome do evento (receivedCall, transferedCall, completedCall, lostCall, canceledCall)")
+	cmd.Flags().StringVarP(&file, "file", "f", "", "caminho do corpo JSON")
+	cmd.Flags().StringSliceVar(&sets, "set", nil, "sobrescreve campos, ex.: --set id=abc --set queueId=1")
 	return cmd
 }
 
@@ -73,16 +73,16 @@ func newTelephonyNonQueueCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "nonqueue",
-		Short: "GET a no-queue call event (--event startTransferedCall|completedCall|startCanceledCall)",
+		Short: "GET de evento de chamada sem controle de fila (--event startTransferedCall|completedCall|startCanceledCall)",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if event == "" {
-				return errors.New("--event is required")
+				return errors.New("--event é obrigatório")
 			}
 			v := url.Values{}
 			for _, kv := range params {
 				k, val, ok := strings.Cut(kv, "=")
 				if !ok {
-					return fmt.Errorf("--param must be key=value, got %q", kv)
+					return fmt.Errorf("--param deve ser chave=valor, recebido %q", kv)
 				}
 				v.Set(k, val)
 			}
@@ -97,8 +97,8 @@ func newTelephonyNonQueueCmd() *cobra.Command {
 			return renderJSON(cmd.OutOrStdout(), raw, r.output, "", nil)
 		},
 	}
-	cmd.Flags().StringVar(&event, "event", "", "event name (startTransferedCall, completedCall, startCanceledCall)")
-	cmd.Flags().StringSliceVar(&params, "param", nil, "query param key=value (repeatable), e.g. --param id=abc --param branchLine=1001")
+	cmd.Flags().StringVar(&event, "event", "", "nome do evento (startTransferedCall, completedCall, startCanceledCall)")
+	cmd.Flags().StringSliceVar(&params, "param", nil, "query param chave=valor (repetível), ex.: --param id=abc --param branchLine=1001")
 	return cmd
 }
 
@@ -109,7 +109,7 @@ func newTelephonyMadeCallLinkCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "made-call-link",
-		Short: "POST /setMadeCallLink — attach a recording link to an outbound call",
+		Short: "POST /setMadeCallLink — vincula um link de gravação a uma chamada de saída",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			body, err := buildTelephonyBody(file, sets)
 			if err != nil {
@@ -126,8 +126,8 @@ func newTelephonyMadeCallLinkCmd() *cobra.Command {
 			return renderJSON(cmd.OutOrStdout(), raw, r.output, "", nil)
 		},
 	}
-	cmd.Flags().StringVarP(&file, "file", "f", "", "path to JSON body")
-	cmd.Flags().StringSliceVar(&sets, "set", nil, "override fields")
+	cmd.Flags().StringVarP(&file, "file", "f", "", "caminho do corpo JSON")
+	cmd.Flags().StringSliceVar(&sets, "set", nil, "sobrescreve campos")
 	return cmd
 }
 
@@ -139,13 +139,13 @@ func buildTelephonyBody(file string, sets []string) (map[string]any, error) {
 			return nil, err
 		}
 		if err := json.Unmarshal(raw, &body); err != nil {
-			return nil, fmt.Errorf("parse body: %w", err)
+			return nil, fmt.Errorf("interpretar corpo: %w", err)
 		}
 	}
 	for _, kv := range sets {
 		k, v, ok := strings.Cut(kv, "=")
 		if !ok {
-			return nil, fmt.Errorf("--set must be key=value, got %q", kv)
+			return nil, fmt.Errorf("--set deve ser chave=valor, recebido %q", kv)
 		}
 		body[k] = parseSetValue(v)
 	}

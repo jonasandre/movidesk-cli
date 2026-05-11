@@ -37,14 +37,14 @@ func Get(name string) (Formatter, error) {
 	case FormatCSV:
 		return csvFormatter{}, nil
 	default:
-		return nil, fmt.Errorf("unknown output format %q (expected json|table|csv)", name)
+		return nil, fmt.Errorf("formato de saída desconhecido %q (esperado json|table|csv)", name)
 	}
 }
 
 // Render is a top-level convenience.
 func Render(w io.Writer, name string, v any, opts Options) error {
 	if w == nil {
-		return errors.New("nil writer")
+		return errors.New("writer nulo")
 	}
 	f, err := Get(name)
 	if err != nil {

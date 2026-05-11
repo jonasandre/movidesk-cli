@@ -251,13 +251,13 @@ func (s *Service) PaginateMerged(ctx context.Context, q odata.Query, pageSize, m
 func DecodeList(raw []byte) ([]Ticket, error) {
 	var rms []json.RawMessage
 	if err := json.Unmarshal(raw, &rms); err != nil {
-		return nil, fmt.Errorf("decode tickets list: %w", err)
+		return nil, fmt.Errorf("decodificar lista de chamados: %w", err)
 	}
 	out := make([]Ticket, 0, len(rms))
 	for _, rm := range rms {
 		var t Ticket
 		if err := json.Unmarshal(rm, &t); err != nil {
-			return nil, fmt.Errorf("decode ticket: %w", err)
+			return nil, fmt.Errorf("decodificar chamado: %w", err)
 		}
 		t.Extra = rm
 		out = append(out, t)

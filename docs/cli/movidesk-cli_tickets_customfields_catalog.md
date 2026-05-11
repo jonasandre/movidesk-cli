@@ -1,6 +1,6 @@
 ## movidesk-cli tickets customfields catalog
 
-Manage the local catalog of custom fields per tenant
+Gerencia o catálogo local de campos personalizados por tenant
 
 ### Options
 
@@ -11,19 +11,19 @@ Manage the local catalog of custom fields per tenant
 ### Options inherited from parent commands
 
 ```
-      --compact         compact JSON output (no indentation)
-      --no-color        disable colored output
-      --no-retry        disable automatic retry on 429/5xx
-  -o, --output string   output format: json|table|csv (default: tenant or 'json')
-      --tenant string   tenant name (overrides current tenant; env: MOVIDESK_TENANT)
-      --user string     default user id (Cod. Ref.) for createdBy on writes; overrides tenant config; env: MOVIDESK_USER
-  -v, --verbose         verbose logging to stderr
+      --compact         JSON compacto (sem indentação)
+      --no-color        desativa cores na saída
+      --no-retry        desativa retentativa automática em 429/5xx
+  -o, --output string   formato de saída: json|table|csv (padrão: do tenant ou 'json')
+      --tenant string   nome do tenant (sobrepõe o tenant atual; env: MOVIDESK_TENANT)
+      --user string     id do usuário padrão (Cod. Ref.) usado em createdBy nas escritas; sobrepõe a configuração do tenant; env: MOVIDESK_USER
+  -v, --verbose         log detalhado em stderr
 ```
 
 ### SEE ALSO
 
-* [movidesk-cli tickets customfields](movidesk-cli_tickets_customfields.md)	 - Read and write ticket custom fields (with read-merge-patch safety)
-* [movidesk-cli tickets customfields catalog add](movidesk-cli_tickets_customfields_catalog_add.md)	 - Register a custom field in the local catalog
-* [movidesk-cli tickets customfields catalog list](movidesk-cli_tickets_customfields_catalog_list.md)	 - List catalog entries for the current tenant
-* [movidesk-cli tickets customfields catalog remove](movidesk-cli_tickets_customfields_catalog_remove.md)	 - Remove a label from the catalog
+* [movidesk-cli tickets customfields](movidesk-cli_tickets_customfields.md)	 - Lê e escreve campos personalizados de chamados (com read-merge-patch seguro)
+* [movidesk-cli tickets customfields catalog add](movidesk-cli_tickets_customfields_catalog_add.md)	 - Registra um campo personalizado no catálogo local
+* [movidesk-cli tickets customfields catalog list](movidesk-cli_tickets_customfields_catalog_list.md)	 - Lista as entradas do catálogo do tenant atual
+* [movidesk-cli tickets customfields catalog remove](movidesk-cli_tickets_customfields_catalog_remove.md)	 - Remove um rótulo do catálogo
 

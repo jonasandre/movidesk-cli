@@ -9,14 +9,14 @@ import (
 func newSurveysCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "surveys",
-		Short: "Read Movidesk satisfaction survey data (/survey/...)",
+		Short: "Lê dados de pesquisas de satisfação do Movidesk (/survey/...)",
 	}
 	cmd.AddCommand(newSurveysQuestionsCmd(), newSurveysResponsesCmd())
 	return cmd
 }
 
 func newSurveysQuestionsCmd() *cobra.Command {
-	cmd := &cobra.Command{Use: "questions", Short: "Survey questions"}
+	cmd := &cobra.Command{Use: "questions", Short: "Perguntas de pesquisas"}
 	cmd.AddCommand(newSurveysQuestionsListCmd(), newSurveysQuestionsGetCmd())
 	return cmd
 }
@@ -28,7 +28,7 @@ func newSurveysQuestionsListCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List survey questions",
+		Short: "Lista perguntas de pesquisas",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -41,7 +41,7 @@ func newSurveysQuestionsListCmd() *cobra.Command {
 			return renderJSON(cmd.OutOrStdout(), body, r.output, "surveys.questions", cf.cols)
 		},
 	}
-	cmd.Flags().IntVar(&typeFilter, "type", 0, "filter by question type (1=satisf, 2=faces, 3=NPS, 4=yes/no)")
+	cmd.Flags().IntVar(&typeFilter, "type", 0, "filtra por tipo da pergunta (1=satisfação, 2=carinhas, 3=NPS, 4=sim/não)")
 	cf.bind(cmd)
 	return cmd
 }
@@ -50,7 +50,7 @@ func newSurveysQuestionsGetCmd() *cobra.Command {
 	var cf columnsFlag
 	cmd := &cobra.Command{
 		Use:   "get <id>",
-		Short: "Get a single survey question by id",
+		Short: "Obtém uma única pergunta de pesquisa pelo id",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			r, err := resolveClient(cmd)
@@ -69,7 +69,7 @@ func newSurveysQuestionsGetCmd() *cobra.Command {
 }
 
 func newSurveysResponsesCmd() *cobra.Command {
-	cmd := &cobra.Command{Use: "responses", Short: "Survey responses"}
+	cmd := &cobra.Command{Use: "responses", Short: "Respostas de pesquisas"}
 	cmd.AddCommand(newSurveysResponsesListCmd())
 	return cmd
 }
@@ -84,7 +84,7 @@ func newSurveysResponsesListCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List survey responses (cursor pagination)",
+		Short: "Lista respostas de pesquisas (paginação por cursor)",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -105,10 +105,10 @@ func newSurveysResponsesListCmd() *cobra.Command {
 			return renderRows(cmd.OutOrStdout(), page, r.output, "surveys.responses", cf.cols)
 		},
 	}
-	cmd.Flags().IntVar(&limit, "limit", 0, "page size (1..100, default 100)")
-	cmd.Flags().StringVar(&startingAfter, "starting-after", "", "cursor (id of last item from previous page)")
-	cmd.Flags().BoolVar(&all, "all", false, "walk every page")
-	cmd.Flags().IntVar(&max, "max", 0, "with --all, stop after this many records")
+	cmd.Flags().IntVar(&limit, "limit", 0, "tamanho da página (1..100, padrão 100)")
+	cmd.Flags().StringVar(&startingAfter, "starting-after", "", "cursor (id do último item da página anterior)")
+	cmd.Flags().BoolVar(&all, "all", false, "percorre todas as páginas")
+	cmd.Flags().IntVar(&max, "max", 0, "com --all, interrompe após este número de registros")
 	cf.bind(cmd)
 	return cmd
 }

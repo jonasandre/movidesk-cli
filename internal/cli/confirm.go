@@ -15,16 +15,16 @@ import (
 // is not a TTY, refuses unless --force was passed.
 func confirm(cmd *cobra.Command, prompt string) error {
 	if !term.IsTerminal(int(os.Stdin.Fd())) {
-		return errors.New("destructive action requires --force when stdin is not a TTY")
+		return errors.New("ação destrutiva exige --force quando stdin não é um TTY")
 	}
-	fmt.Fprintf(cmd.ErrOrStderr(), "%s [yes/N]: ", prompt)
+	fmt.Fprintf(cmd.ErrOrStderr(), "%s [sim/N]: ", prompt)
 	scanner := bufio.NewScanner(os.Stdin)
 	if !scanner.Scan() {
-		return errors.New("no input")
+		return errors.New("sem entrada")
 	}
 	answer := strings.TrimSpace(strings.ToLower(scanner.Text()))
-	if answer != "yes" && answer != "y" {
-		return errors.New("aborted")
+	if answer != "sim" && answer != "s" && answer != "yes" && answer != "y" {
+		return errors.New("cancelado")
 	}
 	return nil
 }

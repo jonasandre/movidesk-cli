@@ -1,18 +1,18 @@
 ## movidesk-cli query
 
-Raw HTTP call against any Movidesk endpoint
+Chamada HTTP bruta contra qualquer endpoint do Movidesk
 
 ### Synopsis
 
-Raw escape hatch. Path is relative to the API base, e.g. "tickets",
-"/tickets", "/persons". Token is injected automatically.
+Escape hatch genérico. O caminho é relativo à base da API, ex.: "tickets",
+"/tickets", "/persons". O token é injetado automaticamente.
 
-Examples:
+Exemplos:
   movidesk-cli query /tickets --filter "id eq 1"
   movidesk-cli query /persons --select id,businessName --top 5
   movidesk-cli query /persons --method GET --param id=abc
 
-Output format follows --output (json|table|csv); use -o json with jq for further slicing.
+O formato de saída segue --output (json|table|csv); use -o json com jq pra fatiar mais.
 
 ```
 movidesk-cli query <path> [flags]
@@ -21,32 +21,32 @@ movidesk-cli query <path> [flags]
 ### Options
 
 ```
-      --all               fetch every page (auto-paginate)
-      --expand strings    comma-separated $expand expressions
-      --filter string     OData $filter expression
+      --all               busca todas as páginas (auto-paginação)
+      --expand strings    expressões $expand separadas por vírgula
+      --filter string     expressão OData $filter
   -h, --help              help for query
-      --max int           with --all, stop after this many records
-      --method string     HTTP method (GET or DELETE only) (default "GET")
-      --orderby strings   comma-separated $orderby clauses (e.g. "id desc")
-      --param strings     extra query param key=value (repeatable)
-      --select strings    comma-separated $select fields
-      --skip int          $skip: server-side offset
-      --top int           $top: page size or single-page limit
+      --max int           com --all, interrompe após este número de registros
+      --method string     método HTTP (apenas GET ou DELETE) (default "GET")
+      --orderby strings   cláusulas $orderby separadas por vírgula (ex.: "id desc")
+      --param strings     query param extra chave=valor (repetível)
+      --select strings    campos $select separados por vírgula
+      --skip int          $skip: offset no servidor
+      --top int           $top: tamanho da página ou limite de uma única página
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --compact         compact JSON output (no indentation)
-      --no-color        disable colored output
-      --no-retry        disable automatic retry on 429/5xx
-  -o, --output string   output format: json|table|csv (default: tenant or 'json')
-      --tenant string   tenant name (overrides current tenant; env: MOVIDESK_TENANT)
-      --user string     default user id (Cod. Ref.) for createdBy on writes; overrides tenant config; env: MOVIDESK_USER
-  -v, --verbose         verbose logging to stderr
+      --compact         JSON compacto (sem indentação)
+      --no-color        desativa cores na saída
+      --no-retry        desativa retentativa automática em 429/5xx
+  -o, --output string   formato de saída: json|table|csv (padrão: do tenant ou 'json')
+      --tenant string   nome do tenant (sobrepõe o tenant atual; env: MOVIDESK_TENANT)
+      --user string     id do usuário padrão (Cod. Ref.) usado em createdBy nas escritas; sobrepõe a configuração do tenant; env: MOVIDESK_USER
+  -v, --verbose         log detalhado em stderr
 ```
 
 ### SEE ALSO
 
-* [movidesk-cli](movidesk-cli.md)	 - CLI for the Movidesk REST API
+* [movidesk-cli](movidesk-cli.md)	 - CLI para a API REST do Movidesk
 

@@ -61,7 +61,7 @@ func TestTable_EmptyShowsNoRows(t *testing.T) {
 	var buf bytes.Buffer
 	err := Render(&buf, FormatTable, []any{}, Options{})
 	require.NoError(t, err)
-	assert.Contains(t, buf.String(), "no rows")
+	assert.Contains(t, buf.String(), "sem linhas")
 }
 
 func TestCSV_HeaderAndRows(t *testing.T) {
@@ -127,7 +127,7 @@ func TestTable_HandlesRawMessageSlice(t *testing.T) {
 	out := strings.ToLower(buf.String())
 	assert.Contains(t, out, "alpha")
 	assert.Contains(t, out, "beta")
-	assert.NotContains(t, out, "no rows")
+	assert.NotContains(t, out, "sem linhas")
 }
 
 func TestCSV_HandlesRawMessageSlice(t *testing.T) {

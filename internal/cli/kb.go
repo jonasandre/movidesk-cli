@@ -12,17 +12,17 @@ import (
 func newKBCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "kb",
-		Short: "Read Movidesk knowledge base articles (/article/:id)",
-		Long: `Movidesk's public KB API exposes only single-article reads (GET
-/article/:id). There is no public list endpoint — you must already know
-the article id.`,
+		Short: "Lê artigos da base de conhecimento do Movidesk (/article/:id)",
+		Long: `A API pública de base de conhecimento do Movidesk expõe apenas
+leitura de artigo único (GET /article/:id). Não existe endpoint público
+de listagem — é preciso conhecer o id do artigo previamente.`,
 	}
 	cmd.AddCommand(newKBArticlesCmd())
 	return cmd
 }
 
 func newKBArticlesCmd() *cobra.Command {
-	cmd := &cobra.Command{Use: "articles", Short: "Articles"}
+	cmd := &cobra.Command{Use: "articles", Short: "Artigos"}
 	cmd.AddCommand(newKBArticlesGetCmd())
 	return cmd
 }
@@ -31,12 +31,12 @@ func newKBArticlesGetCmd() *cobra.Command {
 	var cf columnsFlag
 	cmd := &cobra.Command{
 		Use:   "get <id>",
-		Short: "Get one KB article by id",
+		Short: "Obtém um artigo de base de conhecimento pelo id",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
-				return fmt.Errorf("invalid id %q", args[0])
+				return fmt.Errorf("id inválido %q", args[0])
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {

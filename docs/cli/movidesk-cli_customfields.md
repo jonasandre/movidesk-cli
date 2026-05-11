@@ -1,14 +1,14 @@
 ## movidesk-cli customfields
 
-Manage list-type custom field option pools (tenant-wide)
+Gerencia o conjunto de opções de campos personalizados do tipo lista (por tenant)
 
 ### Synopsis
 
-These commands wrap the /ticketCustomFieldValue/{InsertValues,UpdateValues,DeleteValues}
-endpoints, which manage the OPTION POOL of list-type custom fields — the set
-of values agents can pick from in the dropdown.
+Estes comandos encapsulam os endpoints /ticketCustomFieldValue/{InsertValues,UpdateValues,DeleteValues},
+que gerenciam o CONJUNTO DE OPÇÕES dos campos personalizados do tipo lista —
+os valores que aparecem no dropdown pros agentes selecionarem.
 
-To set a value on a SPECIFIC ticket or person, use:
+Pra definir um valor em um CHAMADO ou PESSOA específica, use:
   tickets customfields set ...
   persons customfields set ...
 
@@ -22,17 +22,17 @@ To set a value on a SPECIFIC ticket or person, use:
 ### Options inherited from parent commands
 
 ```
-      --compact         compact JSON output (no indentation)
-      --no-color        disable colored output
-      --no-retry        disable automatic retry on 429/5xx
-  -o, --output string   output format: json|table|csv (default: tenant or 'json')
-      --tenant string   tenant name (overrides current tenant; env: MOVIDESK_TENANT)
-      --user string     default user id (Cod. Ref.) for createdBy on writes; overrides tenant config; env: MOVIDESK_USER
-  -v, --verbose         verbose logging to stderr
+      --compact         JSON compacto (sem indentação)
+      --no-color        desativa cores na saída
+      --no-retry        desativa retentativa automática em 429/5xx
+  -o, --output string   formato de saída: json|table|csv (padrão: do tenant ou 'json')
+      --tenant string   nome do tenant (sobrepõe o tenant atual; env: MOVIDESK_TENANT)
+      --user string     id do usuário padrão (Cod. Ref.) usado em createdBy nas escritas; sobrepõe a configuração do tenant; env: MOVIDESK_USER
+  -v, --verbose         log detalhado em stderr
 ```
 
 ### SEE ALSO
 
-* [movidesk-cli](movidesk-cli.md)	 - CLI for the Movidesk REST API
-* [movidesk-cli customfields options](movidesk-cli_customfields_options.md)	 - Add/rename/remove option-pool values
+* [movidesk-cli](movidesk-cli.md)	 - CLI para a API REST do Movidesk
+* [movidesk-cli customfields options](movidesk-cli_customfields_options.md)	 - Adiciona/renomeia/remove valores do conjunto de opções
 

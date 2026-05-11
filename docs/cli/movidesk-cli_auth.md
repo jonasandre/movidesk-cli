@@ -1,6 +1,6 @@
 ## movidesk-cli auth
 
-Manage Movidesk tokens and tenants
+Gerencia tokens e tenants do Movidesk
 
 ### Options
 
@@ -11,23 +11,23 @@ Manage Movidesk tokens and tenants
 ### Options inherited from parent commands
 
 ```
-      --compact         compact JSON output (no indentation)
-      --no-color        disable colored output
-      --no-retry        disable automatic retry on 429/5xx
-  -o, --output string   output format: json|table|csv (default: tenant or 'json')
-      --tenant string   tenant name (overrides current tenant; env: MOVIDESK_TENANT)
-      --user string     default user id (Cod. Ref.) for createdBy on writes; overrides tenant config; env: MOVIDESK_USER
-  -v, --verbose         verbose logging to stderr
+      --compact         JSON compacto (sem indentação)
+      --no-color        desativa cores na saída
+      --no-retry        desativa retentativa automática em 429/5xx
+  -o, --output string   formato de saída: json|table|csv (padrão: do tenant ou 'json')
+      --tenant string   nome do tenant (sobrepõe o tenant atual; env: MOVIDESK_TENANT)
+      --user string     id do usuário padrão (Cod. Ref.) usado em createdBy nas escritas; sobrepõe a configuração do tenant; env: MOVIDESK_USER
+  -v, --verbose         log detalhado em stderr
 ```
 
 ### SEE ALSO
 
-* [movidesk-cli](movidesk-cli.md)	 - CLI for the Movidesk REST API
-* [movidesk-cli auth list](movidesk-cli_auth_list.md)	 - List configured tenants
-* [movidesk-cli auth login](movidesk-cli_auth_login.md)	 - Add or update a tenant and store its API token
-* [movidesk-cli auth logout](movidesk-cli_auth_logout.md)	 - Remove a tenant's stored token (and optionally the tenant entry)
-* [movidesk-cli auth set-user](movidesk-cli_auth_set-user.md)	 - Set or clear the default user (Cod. Ref.) for the current tenant
-* [movidesk-cli auth status](movidesk-cli_auth_status.md)	 - Validate the current (or specified) tenant token
-* [movidesk-cli auth switch](movidesk-cli_auth_switch.md)	 - Switch the current tenant
-* [movidesk-cli auth token](movidesk-cli_auth_token.md)	 - Print a tenant's token to stdout (use with care; for piping)
+* [movidesk-cli](movidesk-cli.md)	 - CLI para a API REST do Movidesk
+* [movidesk-cli auth list](movidesk-cli_auth_list.md)	 - Lista os tenants configurados
+* [movidesk-cli auth login](movidesk-cli_auth_login.md)	 - Adiciona ou atualiza um tenant e armazena seu token de API
+* [movidesk-cli auth logout](movidesk-cli_auth_logout.md)	 - Remove o token armazenado de um tenant (e opcionalmente o registro do tenant)
+* [movidesk-cli auth set-user](movidesk-cli_auth_set-user.md)	 - Define ou remove o usuário padrão (Cod. Ref.) do tenant atual
+* [movidesk-cli auth status](movidesk-cli_auth_status.md)	 - Valida o token do tenant atual (ou do informado)
+* [movidesk-cli auth switch](movidesk-cli_auth_switch.md)	 - Troca o tenant atual
+* [movidesk-cli auth token](movidesk-cli_auth_token.md)	 - Imprime o token de um tenant no stdout (use com cuidado; para piping)
 

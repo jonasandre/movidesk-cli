@@ -136,7 +136,7 @@ func (c *Client) do(ctx context.Context, method, path string, params url.Values,
 		default:
 			buf, err := json.Marshal(body)
 			if err != nil {
-				return nil, 0, fmt.Errorf("marshal body: %w", err)
+				return nil, 0, fmt.Errorf("serializar corpo: %w", err)
 			}
 			reqBody = bytes.NewReader(buf)
 			contentType = "application/json"

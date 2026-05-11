@@ -1,128 +1,146 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+Todas as alterações notáveis deste projeto serão documentadas neste
+arquivo.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+O formato é baseado em
+[Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e este
+projeto adere ao
+[Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
 ## [1.0.2] — 2026-05-08
 
-### Fixed
+### Corrigido
 
-- Homebrew Cask install on v1.0.1 aborted because the cask declared
-  `bash_completion`/`zsh_completion`/`fish_completion` paths but the
-  release tarball did not actually ship the completion scripts.
-  GoReleaser now generates `completions/movidesk-cli.{bash,zsh,fish}`
-  via a `before` hook and bundles them in every archive.
+- A instalação via Cask do Homebrew na v1.0.1 abortava porque o cask
+  declarava caminhos `bash_completion`/`zsh_completion`/`fish_completion`
+  mas o tarball publicado não incluía os scripts de completion. O
+  GoReleaser agora gera `completions/movidesk-cli.{bash,zsh,fish}` via
+  um hook `before` e empacota os arquivos em todos os archives.
 
 ## [1.0.1] — 2026-05-08
 
-### Security
+### Segurança
 
-- HTTP retry is now restricted to safe/idempotent methods (`GET`, `HEAD`,
-  `OPTIONS`). Previously, transient failures on `POST`, `PATCH`, and
-  `DELETE` could be retried automatically, risking duplicate writes
-  (double-created tickets/persons, repeated state changes). Write
-  operations no longer retry; use the explicit helpers or set
-  `--no-retry` to disable retry entirely.
-- Rate limiter no longer rolls back a slot on context cancellation. The
-  previous code popped a stamp that had not actually been reserved (the
-  reservation is taken before the wait), which could let bursts exceed
-  the configured 10 req/min window after a cancelled request.
+- A retentativa HTTP agora é restrita a métodos seguros/idempotentes
+  (`GET`, `HEAD`, `OPTIONS`). Antes, falhas transitórias em `POST`,
+  `PATCH` e `DELETE` podiam ser repetidas automaticamente, com risco
+  de gravações duplicadas (chamados/pessoas criados em duplicidade,
+  mudanças de estado repetidas). Operações de escrita não retentam
+  mais; use os helpers explícitos ou defina `--no-retry` para
+  desativar retentativa completamente.
+- O rate limiter não desfaz mais um slot quando o contexto é
+  cancelado. O código anterior removia um stamp que ainda não havia
+  sido reservado de fato (a reserva é tomada antes da espera), o que
+  podia permitir rajadas além da janela configurada de 10 req/min
+  após uma requisição cancelada.
 
 ## [1.0.0] — 2026-05-08
 
-First public release. Covers every API listed in the Movidesk integration menu.
+Primeiro release público. Cobre todas as APIs listadas no menu de
+integração do Movidesk.
 
-### Added
+### Adicionado
 
-#### Foundation
-- Multi-tenant configuration at `~/.movidesk/config.yaml` (chmod 0600).
-- Tokens stored in the OS keychain (macOS Keychain, Windows Credential
-  Manager, Linux libsecret/kwallet) via `zalando/go-keyring`, with an
-  AES-GCM/PBKDF2 encrypted-file fallback for headless environments.
-- HTTP client with token query-param injection, sliding-window rate limiter
-  (10 req/min per Movidesk's published cap), `Retry-After`-aware retries,
-  and exponential backoff on 5xx.
-- OData query builder for `$filter`/`$select`/`$expand`/`$orderby`/`$top`/`$skip`/`$count`.
-- JSON / table / CSV output formatters with per-resource default columns
-  and dot-path support for nested fields.
-- Persistent flags: `--tenant`, `--output`, `--user`, `--no-color`,
-  `--verbose`, `--no-retry`, `--compact`. Env overrides: `MOVIDESK_TENANT`,
-  `MOVIDESK_TOKEN`, `MOVIDESK_USER`, `MOVIDESK_HOME`, `MOVIDESK_PASSPHRASE`.
-- CI workflow: vet + test + lint + build on every PR.
-- GoReleaser config building darwin/linux/windows × amd64/arm64 with
-  Homebrew tap publishing on tag.
+#### Fundação
+- Configuração multi-tenant em `~/.movidesk/config.yaml` (chmod 0600).
+- Tokens armazenados no chaveiro do sistema operacional (macOS Keychain,
+  Windows Credential Manager, Linux libsecret/kwallet) via
+  `zalando/go-keyring`, com fallback em arquivo criptografado
+  AES-GCM/PBKDF2 para ambientes headless.
+- Cliente HTTP com injeção de token via query-param, rate limiter de
+  janela deslizante (10 req/min conforme limite publicado do Movidesk),
+  retentativas que respeitam `Retry-After` e backoff exponencial em
+  5xx.
+- Builder de consulta OData para
+  `$filter`/`$select`/`$expand`/`$orderby`/`$top`/`$skip`/`$count`.
+- Formatters de saída JSON / tabela / CSV com colunas padrão por
+  recurso e suporte a dot-path para campos aninhados.
+- Flags persistentes: `--tenant`, `--output`, `--user`, `--no-color`,
+  `--verbose`, `--no-retry`, `--compact`. Overrides via env:
+  `MOVIDESK_TENANT`, `MOVIDESK_TOKEN`, `MOVIDESK_USER`,
+  `MOVIDESK_HOME`, `MOVIDESK_PASSPHRASE`.
+- Workflow de CI: vet + test + lint + build em todo PR.
+- Configuração GoReleaser compilando darwin/linux/windows × amd64/arm64
+  com publicação na tap do Homebrew em cada tag.
 
 #### Auth
-- `auth login --tenant` with hidden token prompt and live API validation.
-- `auth list` (token never displayed), `auth switch`, `auth status`,
-  `auth logout [--all]`, `auth token` (explicit print for piping).
-- `auth set-user` plus default-user prompt on `auth login` for
-  per-tenant `createdBy` injection.
+- `auth login --tenant` com prompt oculto de token e validação ao vivo
+  contra a API.
+- `auth list` (token nunca exibido), `auth switch`, `auth status`,
+  `auth logout [--all]`, `auth token` (impressão explícita para piping).
+- `auth set-user` mais prompt de usuário padrão no `auth login` para
+  injeção de `createdBy` por tenant.
 
 #### Tickets
 - `tickets list/get/create/update/html/past list/merged list/attach`
-  with auto-pagination (`--all` + `--max`) and JSON-template create
+  com auto-paginação (`--all` + `--max`) e criação por template JSON
   (`--file`, `--from-template`, `--from-template-file`, `--set k=v`).
-- Full schema typing (~80 fields) with `Extra json.RawMessage` for
-  forward compatibility on every nested type.
-- Collection subcommands: `actions list/get/add/update/delete`,
+- Tipagem completa do schema (~80 campos) com
+  `Extra json.RawMessage` em todo tipo aninhado para compatibilidade
+  com futuras evoluções.
+- Subcomandos de coleção: `actions list/get/add/update/delete`,
   `clients list`, `relations`, `timeline`, `assets list`,
   `histories list`.
-- Custom field subsystem: `customfields show/set/clear` with
-  read-merge-patch semantics, plus a per-tenant catalog at
-  `~/.movidesk/<tenant>/customfields.yaml` (`catalog list/add/remove`).
-- Default `createdBy` injection on `create` and `actions add` when the
-  tenant has a default user, with `--user <id>` override.
+- Subsistema de campos personalizados:
+  `customfields show/set/clear` com semântica read-merge-patch, mais
+  catálogo por tenant em
+  `~/.movidesk/<tenant>/customfields.yaml`
+  (`catalog list/add/remove`).
+- Injeção do `createdBy` padrão em `create` e `actions add` quando o
+  tenant tem um usuário padrão definido, com override via `--user <id>`.
 
-#### Persons
-- `persons list/get/create/update/delete` with delete confirmation.
-- `persons customfields show/set/clear` reusing the tickets catalog.
+#### Pessoas
+- `persons list/get/create/update/delete` com confirmação de exclusão.
+- `persons customfields show/set/clear` reutilizando o catálogo dos
+  tickets.
 
-#### Services
-- `services list/get/create/update/delete` with delete confirmation.
+#### Serviços
+- `services list/get/create/update/delete` com confirmação de exclusão.
 
-#### Activities
-- `activities list/get/create/update/delete/add-teams`, with cursor
-  pagination (`limit`/`startingAfter`/`name`) — Movidesk's API for
-  activities is not OData.
+#### Atividades
+- `activities list/get/create/update/delete/add-teams`, com paginação
+  por cursor (`limit`/`startingAfter`/`name`) — a API de atividades do
+  Movidesk não é OData.
 
-#### Contracts (`/timeAgreement`)
+#### Contratos (`/timeAgreement`)
 - `contracts list/get/create/update/delete`.
-- `contracts consumption list` (read-only `/timeAgreementConsumption`).
+- `contracts consumption list` (leitura de `/timeAgreementConsumption`).
 
-#### Surveys
-- `surveys questions list/get` (read-only).
-- `surveys responses list` with cursor pagination.
+#### Pesquisas
+- `surveys questions list/get` (somente leitura).
+- `surveys responses list` com paginação por cursor.
 
-#### Knowledge base
-- `kb articles get <id>` (single-article read; no public list endpoint).
+#### Base de conhecimento
+- `kb articles get <id>` (leitura de artigo único; não há endpoint
+  público de listagem).
 
-#### Telephony
-- `telephony queue --event <name>` for `/asterisk_{received,transfered,completed,lost,canceled}Call`.
-- `telephony nonqueue --event <name>` for the no-queue variants.
-- `telephony made-call-link` for `/setMadeCallLink`.
+#### Telefonia
+- `telephony queue --event <nome>` para
+  `/asterisk_{received,transfered,completed,lost,canceled}Call`.
+- `telephony nonqueue --event <nome>` para as variantes sem fila.
+- `telephony made-call-link` para `/setMadeCallLink`.
 
-#### Custom field option pool
-- `customfields options add/rename/remove` wrapping
-  `/ticketCustomFieldValue/{Insert,Update,Delete}Values` so
-  list-type field dropdowns can be managed tenant-wide.
+#### Conjunto de opções de campos personalizados
+- `customfields options add/rename/remove` encapsulando
+  `/ticketCustomFieldValue/{Insert,Update,Delete}Values` para
+  gerenciar os dropdowns de campos tipo lista no tenant inteiro.
 
 #### Escape hatch
-- `query <path>` for any GET/DELETE OData call against arbitrary
-  endpoints, with optional `--all` auto-pagination.
+- `query <path>` para qualquer chamada GET/DELETE OData contra
+  endpoints arbitrários, com auto-paginação opcional via `--all`.
 
-### Notes
+### Notas
 
-- PATCH on `/tickets` replaces array-valued fields like `customFieldValues`;
-  the typed write helpers always go through read-merge-patch so callers
-  describe only the change they want.
-- The CLI is round-trip-safe via `--output json`: the underlying handler
-  re-emits the response untouched, so even fields the SDK doesn't yet
-  type are preserved end-to-end.
+- PATCH em `/tickets` substitui campos com valor de array como
+  `customFieldValues`; os helpers tipados de escrita sempre passam por
+  read-merge-patch para que o chamador descreva só a alteração
+  desejada.
+- O CLI é seguro em round-trip via `--output json`: o handler
+  subjacente reemite a resposta sem alterações, então mesmo campos
+  que o SDK ainda não tipa são preservados de ponta a ponta.
 
 [Unreleased]: https://github.com/jonasandre/movidesk-cli/compare/v1.0.2...HEAD
 [1.0.2]: https://github.com/jonasandre/movidesk-cli/compare/v1.0.1...v1.0.2

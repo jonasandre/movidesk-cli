@@ -15,14 +15,14 @@ func newTicketsCustomFieldsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "customfields",
 		Aliases: []string{"cf"},
-		Short:   "Read and write ticket custom fields (with read-merge-patch safety)",
-		Long: `Movidesk's PATCH /tickets deletes any customFieldValues entry not
-present in the body. This subcommand uses read-merge-patch internally so
-you only describe the change you want, never the whole list.
+		Short:   "Lê e escreve campos personalizados de chamados (com read-merge-patch seguro)",
+		Long: `O PATCH /tickets do Movidesk apaga qualquer entrada de customFieldValues
+ausente no corpo. Este subcomando usa read-merge-patch internamente, então
+você só descreve a alteração desejada, nunca a lista completa.
 
-A local catalog at ~/.movidesk/<tenant>/customfields.yaml maps human-friendly
-labels to numeric field IDs and types so you can use --field-label "Severidade"
-instead of --field 125529.`,
+Um catálogo local em ~/.movidesk/<tenant>/customfields.yaml mapeia rótulos
+legíveis para os ids numéricos e tipos dos campos, permitindo usar
+--field-label "Severidade" no lugar de --field 125529.`,
 	}
 	cmd.AddCommand(
 		newTicketsCFShowCmd(),
@@ -37,12 +37,12 @@ func newTicketsCFShowCmd() *cobra.Command {
 	var cf columnsFlag
 	cmd := &cobra.Command{
 		Use:   "show <ticket-id>",
-		Short: "List a ticket's customFieldValues",
+		Short: "Lista os customFieldValues de um chamado",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
-				return fmt.Errorf("invalid ticket id %q", args[0])
+				return fmt.Errorf("id do chamado inválido %q", args[0])
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -88,12 +88,12 @@ func newTicketsCFSetCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "set <ticket-id>",
-		Short: "Set a custom field value (read-merge-patch)",
+		Short: "Define o valor de um campo personalizado (read-merge-patch)",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
-				return fmt.Errorf("invalid ticket id %q", args[0])
+				return fmt.Errorf("id do chamado inválido %q", args[0])
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -128,7 +128,7 @@ func newTicketsCFSetCmd() *cobra.Command {
 				cfv.Items = append(cfv.Items, tickets.CustomFieldItem{Team: tm})
 			}
 			if cfv.Value == "" && len(cfv.Items) == 0 {
-				return errors.New("provide --value, --item, --item-person, --item-client or --item-team")
+				return errors.New("informe --value, --item, --item-person, --item-client ou --item-team")
 			}
 
 			raw, err := tickets.New(r.client).SetCustomFieldValue(cmd.Context(), id, cfv)
@@ -142,15 +142,15 @@ func newTicketsCFSetCmd() *cobra.Command {
 			return renderJSON(cmd.OutOrStdout(), raw, r.output, "tickets", nil)
 		},
 	}
-	cmd.Flags().IntVar(&fieldID, "field", 0, "numeric custom field id (or use --field-label)")
-	cmd.Flags().StringVar(&fieldLabel, "field-label", "", "label registered in the catalog")
-	cmd.Flags().IntVar(&ruleID, "rule", 0, "rule id (taken from catalog if omitted)")
-	cmd.Flags().IntVar(&line, "line", 0, "row number (default 1)")
-	cmd.Flags().StringVar(&value, "value", "", "value for text/numeric/date/etc. types")
-	cmd.Flags().StringSliceVar(&items, "item", nil, "list-of-values item label (repeatable)")
-	cmd.Flags().StringSliceVar(&itemPersons, "item-person", nil, "person id (repeatable)")
-	cmd.Flags().StringSliceVar(&itemClients, "item-client", nil, "client id (repeatable)")
-	cmd.Flags().StringSliceVar(&itemTeams, "item-team", nil, "team name (repeatable)")
+	cmd.Flags().IntVar(&fieldID, "field", 0, "id numérico do campo personalizado (ou use --field-label)")
+	cmd.Flags().StringVar(&fieldLabel, "field-label", "", "rótulo registrado no catálogo")
+	cmd.Flags().IntVar(&ruleID, "rule", 0, "id da regra (vem do catálogo se omitido)")
+	cmd.Flags().IntVar(&line, "line", 0, "número da linha (padrão 1)")
+	cmd.Flags().StringVar(&value, "value", "", "valor para tipos texto/numérico/data/etc.")
+	cmd.Flags().StringSliceVar(&items, "item", nil, "rótulo de item da lista de valores (repetível)")
+	cmd.Flags().StringSliceVar(&itemPersons, "item-person", nil, "id da pessoa (repetível)")
+	cmd.Flags().StringSliceVar(&itemClients, "item-client", nil, "id do cliente (repetível)")
+	cmd.Flags().StringSliceVar(&itemTeams, "item-team", nil, "nome da equipe (repetível)")
 	return cmd
 }
 
@@ -163,12 +163,12 @@ func newTicketsCFClearCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "clear <ticket-id>",
-		Short: "Remove a custom field value (read-merge-patch)",
+		Short: "Remove o valor de um campo personalizado (read-merge-patch)",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
-				return fmt.Errorf("invalid ticket id %q", args[0])
+				return fmt.Errorf("id do chamado inválido %q", args[0])
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -190,10 +190,10 @@ func newTicketsCFClearCmd() *cobra.Command {
 			return renderJSON(cmd.OutOrStdout(), raw, r.output, "tickets", nil)
 		},
 	}
-	cmd.Flags().IntVar(&fieldID, "field", 0, "numeric custom field id")
-	cmd.Flags().StringVar(&fieldLabel, "field-label", "", "label from the catalog")
-	cmd.Flags().IntVar(&ruleID, "rule", 0, "rule id (omit with catalog)")
-	cmd.Flags().IntVar(&line, "line", 0, "specific line; omit to clear every line")
+	cmd.Flags().IntVar(&fieldID, "field", 0, "id numérico do campo personalizado")
+	cmd.Flags().StringVar(&fieldLabel, "field-label", "", "rótulo do catálogo")
+	cmd.Flags().IntVar(&ruleID, "rule", 0, "id da regra (omita se usar catálogo)")
+	cmd.Flags().IntVar(&line, "line", 0, "linha específica; omita para limpar todas")
 	return cmd
 }
 
@@ -205,15 +205,15 @@ type resolvedField struct {
 
 func resolveField(cat *Catalog, fieldID int, fieldLabel string, ruleID int) (resolvedField, error) {
 	if fieldID == 0 && fieldLabel == "" {
-		return resolvedField{}, errors.New("provide --field or --field-label")
+		return resolvedField{}, errors.New("informe --field ou --field-label")
 	}
 	if fieldLabel != "" {
 		if cat == nil {
-			return resolvedField{}, fmt.Errorf("--field-label %q requires a catalog (run `tickets customfields catalog add`)", fieldLabel)
+			return resolvedField{}, fmt.Errorf("--field-label %q exige um catálogo (execute `tickets customfields catalog add`)", fieldLabel)
 		}
 		entry, ok := cat.Fields[fieldLabel]
 		if !ok {
-			return resolvedField{}, fmt.Errorf("no catalog entry for %q", fieldLabel)
+			return resolvedField{}, fmt.Errorf("nenhuma entrada no catálogo para %q", fieldLabel)
 		}
 		rid := ruleID
 		if rid == 0 {
@@ -222,7 +222,7 @@ func resolveField(cat *Catalog, fieldID int, fieldLabel string, ruleID int) (res
 		return resolvedField{id: entry.ID, ruleID: rid, entry: entry}, nil
 	}
 	if ruleID == 0 {
-		return resolvedField{}, errors.New("--rule is required when --field is given without a catalog")
+		return resolvedField{}, errors.New("--rule é obrigatório quando --field é usado sem catálogo")
 	}
 	return resolvedField{id: fieldID, ruleID: ruleID}, nil
 }
@@ -267,7 +267,7 @@ func joinShort(parts []string, sep string, max int) string {
 func newTicketsCFCatalogCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "catalog",
-		Short: "Manage the local catalog of custom fields per tenant",
+		Short: "Gerencia o catálogo local de campos personalizados por tenant",
 	}
 	cmd.AddCommand(
 		newTicketsCFCatalogListCmd(),
@@ -280,7 +280,7 @@ func newTicketsCFCatalogCmd() *cobra.Command {
 func newTicketsCFCatalogListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "List catalog entries for the current tenant",
+		Short: "Lista as entradas do catálogo do tenant atual",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -318,10 +318,10 @@ func newTicketsCFCatalogAddCmd() *cobra.Command {
 	)
 	cmd := &cobra.Command{
 		Use:   "add",
-		Short: "Register a custom field in the local catalog",
+		Short: "Registra um campo personalizado no catálogo local",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if label == "" || id == 0 || ruleID == 0 || ftype == "" {
-				return errors.New("--label, --field, --rule and --type are required")
+				return errors.New("--label, --field, --rule e --type são obrigatórios")
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -332,7 +332,7 @@ func newTicketsCFCatalogAddCmd() *cobra.Command {
 				return err
 			}
 			if !knownFieldType(ftype) {
-				return fmt.Errorf("unknown --type %q (see `tickets customfields help`)", ftype)
+				return fmt.Errorf("--type desconhecido %q (veja `tickets customfields help`)", ftype)
 			}
 			cat.Fields[label] = CatalogEntry{
 				ID:      id,
@@ -343,15 +343,15 @@ func newTicketsCFCatalogAddCmd() *cobra.Command {
 			if err := saveCatalog(r.tenant.Name, cat); err != nil {
 				return err
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "Saved %q in tenant %q catalog\n", label, r.tenant.Name)
+			fmt.Fprintf(cmd.OutOrStdout(), "%q salvo no catálogo do tenant %q\n", label, r.tenant.Name)
 			return nil
 		},
 	}
-	cmd.Flags().StringVar(&label, "label", "", "human label, e.g. \"Severidade\" (required)")
-	cmd.Flags().IntVar(&id, "field", 0, "numeric customFieldId from Movidesk (required)")
-	cmd.Flags().IntVar(&ruleID, "rule", 0, "numeric customFieldRuleId from Movidesk (required)")
-	cmd.Flags().StringVar(&ftype, "type", "", "field type (required)")
-	cmd.Flags().StringSliceVar(&options, "options", nil, "allowed options for list types")
+	cmd.Flags().StringVar(&label, "label", "", "rótulo legível, ex.: \"Severidade\" (obrigatório)")
+	cmd.Flags().IntVar(&id, "field", 0, "customFieldId numérico do Movidesk (obrigatório)")
+	cmd.Flags().IntVar(&ruleID, "rule", 0, "customFieldRuleId numérico do Movidesk (obrigatório)")
+	cmd.Flags().StringVar(&ftype, "type", "", "tipo do campo (obrigatório)")
+	cmd.Flags().StringSliceVar(&options, "options", nil, "opções permitidas para tipos de lista")
 	return cmd
 }
 
@@ -359,10 +359,10 @@ func newTicketsCFCatalogRemoveCmd() *cobra.Command {
 	var label string
 	cmd := &cobra.Command{
 		Use:   "remove",
-		Short: "Remove a label from the catalog",
+		Short: "Remove um rótulo do catálogo",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if label == "" {
-				return errors.New("--label is required")
+				return errors.New("--label é obrigatório")
 			}
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -373,17 +373,17 @@ func newTicketsCFCatalogRemoveCmd() *cobra.Command {
 				return err
 			}
 			if _, ok := cat.Fields[label]; !ok {
-				return fmt.Errorf("no catalog entry for %q", label)
+				return fmt.Errorf("nenhuma entrada no catálogo para %q", label)
 			}
 			delete(cat.Fields, label)
 			if err := saveCatalog(r.tenant.Name, cat); err != nil {
 				return err
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "Removed %q from tenant %q catalog\n", label, r.tenant.Name)
+			fmt.Fprintf(cmd.OutOrStdout(), "%q removido do catálogo do tenant %q\n", label, r.tenant.Name)
 			return nil
 		},
 	}
-	cmd.Flags().StringVar(&label, "label", "", "label to remove (required)")
+	cmd.Flags().StringVar(&label, "label", "", "rótulo a remover (obrigatório)")
 	return cmd
 }
 
