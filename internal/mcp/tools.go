@@ -63,12 +63,17 @@ func registerTickets(s *mcpsdk.Server, c *movidesk.Client) {
 	mcpsdk.AddTool(s, &mcpsdk.Tool{
 		Name: "tickets_list",
 		Description: `Lista tickets dos últimos 90 dias suportando OData $filter/$select/$expand/$orderby.
+$select é OBRIGATÓRIO (mín. ["id"]); top ≤ 250 (clamp implícito acima disso).
 Campos comuns: id, protocol, subject, status, baseStatus ('New','InAttendance','Stopped','Resolved','Closed','Canceled'),
 ownerTeam (STRING — use "ownerTeam eq 'Qlik'", nunca "ownerTeam/name eq ..."), createdDate, lastUpdate.
-Datas devem ser UTC com sufixo 'Z'. Para tickets >90d use tickets_past_list. Veja resource movidesk://odata-filter-syntax.`,
+Datas devem ser UTC com sufixo 'Z'. Para tickets >90d use tickets_past_list. Veja resource movidesk://odata-filter-syntax.
+Exemplo: {"select": ["id","protocol","subject"], "filter": "createdDate ge 2026-05-01T00:00:00Z", "top": 100}.`,
+		InputSchema: buildInputSchema[ticketsListArgs](),
 	}, func(ctx context.Context, _ *mcpsdk.CallToolRequest, a ticketsListArgs) (*mcpsdk.CallToolResult, any, error) {
 		svc := tickets.New(c)
 		q := a.Query()
+		var warning string
+		q.Top, warning = clampTicketsTop(q.Top)
 		maxRows := applyDefaultMax(a.All, a.Max)
 		if a.All {
 			pageSize := q.Top
@@ -77,21 +82,26 @@ Datas devem ser UTC com sufixo 'Z'. Para tickets >90d use tickets_past_list. Vej
 			if err != nil {
 				return nil, nil, wrapAPIError(err)
 			}
-			return rowsResult(rows), nil, nil
+			return withWarning(rowsResult(rows), warning), nil, nil
 		}
 		raw, err := svc.List(ctx, q, a.IncludeDeleted)
 		if err != nil {
 			return nil, nil, wrapAPIError(err)
 		}
-		return rawResult(raw), nil, nil
+		return withWarning(rawResult(raw), warning), nil, nil
 	})
 
 	mcpsdk.AddTool(s, &mcpsdk.Tool{
-		Name:        "tickets_past_list",
-		Description: "Lista tickets arquivados (lastUpdate > 90 dias). Mesma sintaxe OData do tickets_list, sem include_deleted.",
+		Name: "tickets_past_list",
+		Description: `Lista tickets arquivados (lastUpdate > 90 dias). Mesma sintaxe OData do tickets_list, sem include_deleted.
+$select é OBRIGATÓRIO (mín. ["id"]); top ≤ 250 (clamp implícito).
+Exemplo: {"select": ["id","protocol","createdDate"], "filter": "lastUpdate lt 2026-02-10T00:00:00Z", "top": 100}.`,
+		InputSchema: buildInputSchema[ticketsPastListArgs](),
 	}, func(ctx context.Context, _ *mcpsdk.CallToolRequest, a ticketsPastListArgs) (*mcpsdk.CallToolResult, any, error) {
 		svc := tickets.New(c)
 		q := a.Query()
+		var warning string
+		q.Top, warning = clampTicketsTop(q.Top)
 		maxRows := applyDefaultMax(a.All, a.Max)
 		if a.All {
 			pageSize := q.Top
@@ -100,13 +110,13 @@ Datas devem ser UTC com sufixo 'Z'. Para tickets >90d use tickets_past_list. Vej
 			if err != nil {
 				return nil, nil, wrapAPIError(err)
 			}
-			return rowsResult(rows), nil, nil
+			return withWarning(rowsResult(rows), warning), nil, nil
 		}
 		raw, err := svc.Past(ctx, q)
 		if err != nil {
 			return nil, nil, wrapAPIError(err)
 		}
-		return rawResult(raw), nil, nil
+		return withWarning(rawResult(raw), warning), nil, nil
 	})
 
 	mcpsdk.AddTool(s, &mcpsdk.Tool{
@@ -192,7 +202,9 @@ func registerPersons(s *mcpsdk.Server, c *movidesk.Client) {
 		Name: "persons_list",
 		Description: `Lista pessoas, clientes, agentes e empresas com filtros OData.
 Campos comuns: id, businessName, corporateName, personType (1=Pessoa,2=Empresa,4=Departamento),
-profileType (1=Agente,2=Cliente,3=Ambos), isActive, userName.`,
+profileType (1=Agente,2=Cliente,3=Ambos), isActive, userName.
+Exemplo: {"select": ["id","businessName","personType"], "filter": "personType eq 2 and isActive eq true", "top": 100}.`,
+		InputSchema: buildInputSchema[personsListArgs](),
 	}, func(ctx context.Context, _ *mcpsdk.CallToolRequest, a personsListArgs) (*mcpsdk.CallToolResult, any, error) {
 		svc := persons.New(c)
 		q := a.Query()
@@ -248,8 +260,10 @@ type servicesListArgs struct {
 
 func registerServices(s *mcpsdk.Server, c *movidesk.Client) {
 	mcpsdk.AddTool(s, &mcpsdk.Tool{
-		Name:        "services_list",
-		Description: "Lista o catálogo de serviços do Movidesk. Campos: id, name, parentServiceId, isVisible, allowFinalUser.",
+		Name: "services_list",
+		Description: `Lista o catálogo de serviços do Movidesk. Campos: id, name, parentServiceId, isVisible, allowFinalUser.
+Exemplo: {"select": ["id","name","isVisible"], "filter": "isVisible eq true", "top": 100}.`,
+		InputSchema: buildInputSchema[servicesListArgs](),
 	}, func(ctx context.Context, _ *mcpsdk.CallToolRequest, a servicesListArgs) (*mcpsdk.CallToolResult, any, error) {
 		api := services.New(c)
 		q := a.Query()
@@ -294,8 +308,10 @@ type contractsConsumptionListArgs struct {
 
 func registerContracts(s *mcpsdk.Server, c *movidesk.Client) {
 	mcpsdk.AddTool(s, &mcpsdk.Tool{
-		Name:        "contracts_list",
-		Description: "Lista contratos de tempo (timeAgreement). Campos: id, name, isActive, beginDate, endDate.",
+		Name: "contracts_list",
+		Description: `Lista contratos de tempo (timeAgreement). Campos: id, name, isActive, beginDate, endDate.
+Exemplo: {"select": ["id","name","isActive"], "filter": "isActive eq true", "top": 100}.`,
+		InputSchema: buildInputSchema[contractsListArgs](),
 	}, func(ctx context.Context, _ *mcpsdk.CallToolRequest, a contractsListArgs) (*mcpsdk.CallToolResult, any, error) {
 		api := contracts.New(c)
 		q := a.Query()
@@ -328,8 +344,10 @@ func registerContracts(s *mcpsdk.Server, c *movidesk.Client) {
 	})
 
 	mcpsdk.AddTool(s, &mcpsdk.Tool{
-		Name:        "contracts_consumption_list",
-		Description: "Lista lançamentos de consumo (/timeAgreementConsumption) com filtros OData.",
+		Name: "contracts_consumption_list",
+		Description: `Lista lançamentos de consumo (/timeAgreementConsumption) com filtros OData.
+Exemplo: {"select": ["id","ticketId","timeSpent","date"], "filter": "date ge 2026-05-01T00:00:00Z", "top": 100}.`,
+		InputSchema: buildInputSchema[contractsConsumptionListArgs](),
 	}, func(ctx context.Context, _ *mcpsdk.CallToolRequest, a contractsConsumptionListArgs) (*mcpsdk.CallToolResult, any, error) {
 		api := contracts.New(c)
 		q := a.Query()
@@ -464,8 +482,11 @@ type queryArgs struct {
 
 func registerQuery(s *mcpsdk.Server, c *movidesk.Client) {
 	mcpsdk.AddTool(s, &mcpsdk.Tool{
-		Name:        "query",
-		Description: "Escape hatch GET para qualquer endpoint OData do Movidesk não coberto por uma tool dedicada. Apenas leitura; aceita parâmetros OData e extras.",
+		Name: "query",
+		Description: `Escape hatch GET para qualquer endpoint OData do Movidesk não coberto por uma tool dedicada. Apenas leitura.
+'path' deve ser um endpoint REAL da API Movidesk (ex.: /tickets, /persons, /services, /contracts, /activities, /articles).
+Não invente sub-paths: /tickets/$count, /tickets/count e variantes NÃO existem — para contar use tickets_list com top:1.`,
+		InputSchema: buildInputSchema[queryArgs](),
 	}, func(ctx context.Context, _ *mcpsdk.CallToolRequest, a queryArgs) (*mcpsdk.CallToolResult, any, error) {
 		if !strings.HasPrefix(a.Path, "/") {
 			return nil, nil, errors.New("path deve iniciar com '/'")

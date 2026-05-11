@@ -17,7 +17,35 @@ const (
 	// this is truncated with a marker so the LLM can narrow $select / $top
 	// instead of silently swallowing partial data.
 	maxResultBytes = 256 * 1024
+
+	// ticketsTopSafeCap is the practical ceiling for $top on the tickets
+	// endpoint. Movidesk advertises higher limits but routinely returns HTTP
+	// 500 for pages above this size; clamping silently keeps the LLM moving
+	// instead of forcing it to recover from an opaque upstream failure.
+	ticketsTopSafeCap = 250
 )
+
+// clampTicketsTop reduces an over-large $top to the empirically safe cap and
+// returns a human-readable warning that handlers prepend to the response so
+// the LLM understands why the page is smaller than requested.
+func clampTicketsTop(top int) (int, string) {
+	if top > ticketsTopSafeCap {
+		return ticketsTopSafeCap, fmt.Sprintf(
+			"aviso: top=%d reduzido para %d (Movidesk pode retornar HTTP 500 em páginas maiores).",
+			top, ticketsTopSafeCap)
+	}
+	return top, ""
+}
+
+// withWarning prepends a warning TextContent block to res so it precedes the
+// JSON payload in the model's view of the tool result.
+func withWarning(res *mcpsdk.CallToolResult, warning string) *mcpsdk.CallToolResult {
+	if warning == "" || res == nil {
+		return res
+	}
+	res.Content = append([]mcpsdk.Content{&mcpsdk.TextContent{Text: warning}}, res.Content...)
+	return res
+}
 
 // applyDefaultMax returns max unchanged when an explicit value is set, or the
 // safe default when all=true and max=0. With all=false the value is irrelevant

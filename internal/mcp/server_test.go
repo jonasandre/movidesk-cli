@@ -230,6 +230,103 @@ func textOf(r *mcpsdk.CallToolResult) string {
 	return b.String()
 }
 
+func TestStringList_UnmarshalJSON(t *testing.T) {
+	cases := []struct {
+		name string
+		in   string
+		want StringList
+	}{
+		{"canonical array", `["id","name"]`, StringList{"id", "name"}},
+		{"json-stringified array", `"[\"id\",\"name\"]"`, StringList{"id", "name"}},
+		{"comma-string", `"id,name"`, StringList{"id", "name"}},
+		{"comma-string with spaces", `"id, name , protocol"`, StringList{"id", "name", "protocol"}},
+		{"single element string", `"id"`, StringList{"id"}},
+		{"null", `null`, nil},
+		{"empty string", `""`, nil},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			var got StringList
+			require.NoError(t, json.Unmarshal([]byte(tc.in), &got))
+			assert.Equal(t, tc.want, got)
+		})
+	}
+
+	t.Run("rejects number", func(t *testing.T) {
+		var got StringList
+		assert.Error(t, json.Unmarshal([]byte(`42`), &got))
+	})
+}
+
+func TestClampTicketsTop(t *testing.T) {
+	cases := []struct {
+		in          int
+		wantTop     int
+		wantWarning bool
+	}{
+		{0, 0, false},
+		{100, 100, false},
+		{250, 250, false},
+		{251, 250, true},
+		{1000, 250, true},
+	}
+	for _, tc := range cases {
+		got, warning := clampTicketsTop(tc.in)
+		assert.Equal(t, tc.wantTop, got, "top for input %d", tc.in)
+		assert.Equal(t, tc.wantWarning, warning != "", "warning for input %d", tc.in)
+	}
+}
+
+func TestToolsCall_TicketsList_AcceptsSelectVariants(t *testing.T) {
+	cases := []struct {
+		name    string
+		select_ any
+	}{
+		{"array", []string{"id", "protocol"}},
+		{"json-string", `["id","protocol"]`},
+		{"comma-string", "id,protocol"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			mux := http.NewServeMux()
+			mux.HandleFunc("/tickets", func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "id,protocol", r.URL.Query().Get("$select"))
+				_, _ = w.Write([]byte(`[{"id":1}]`))
+			})
+			cs := startServer(t, mux, Config{Tenant: "demo"})
+
+			res, err := cs.CallTool(context.Background(), &mcpsdk.CallToolParams{
+				Name: "tickets_list",
+				Arguments: map[string]any{
+					"select": tc.select_,
+				},
+			})
+			require.NoError(t, err)
+			require.False(t, res.IsError, "unexpected error: %s", textOf(res))
+			assert.Contains(t, textOf(res), `"id":1`)
+		})
+	}
+}
+
+func TestToolsCall_TicketsList_ClampsLargeTop(t *testing.T) {
+	var seenTop string
+	mux := http.NewServeMux()
+	mux.HandleFunc("/tickets", func(w http.ResponseWriter, r *http.Request) {
+		seenTop = r.URL.Query().Get("$top")
+		_, _ = w.Write([]byte(`[{"id":1}]`))
+	})
+	cs := startServer(t, mux, Config{Tenant: "demo"})
+
+	res, err := cs.CallTool(context.Background(), &mcpsdk.CallToolParams{
+		Name:      "tickets_list",
+		Arguments: map[string]any{"top": 1000},
+	})
+	require.NoError(t, err)
+	require.False(t, res.IsError, "unexpected error: %s", textOf(res))
+	assert.Equal(t, "250", seenTop, "$top should be clamped to 250 before reaching API")
+	assert.Contains(t, textOf(res), "reduzido para 250", "user-visible warning should be attached")
+}
+
 // makePage builds a JSON array of n placeholder objects matching the shape the
 // pagination cap test expects.
 func makePage(n int) string {

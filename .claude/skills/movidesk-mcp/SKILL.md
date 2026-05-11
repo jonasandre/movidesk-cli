@@ -7,7 +7,17 @@ description: How to query the Movidesk help-desk API through the embedded Movide
 
 The Movidesk MCP server is read-only and wraps the Movidesk REST/OData API. All list-style tools accept the same shared OData arguments (`filter`, `select`, `expand`, `orderby`, `top`, `skip`, `all`, `max`). The shape that the LLM sends is JSON, but the values follow OData v3 conventions, **not** standard SQL or JS — most failures come from forgetting that.
 
-The hard constraints to keep in mind:
+## Regras críticas (leia antes de qualquer chamada)
+
+These five rules account for the vast majority of failed calls observed in evals. Apply them mechanically:
+
+1. **Só chame as tools listadas na tabela "Tools at a glance" abaixo.** O `query` é escape hatch — seu `path` deve ser um endpoint real do Movidesk (`/tickets`, `/persons`, `/services`, `/contracts`, `/activities`, `/articles`, `/timeAppointments`, `/timeAgreementConsumption`). Não invente sub-paths a partir de conhecimento OData genérico.
+2. **Listas (`select`, `expand`, `orderby`) são JSON arrays.** Canonical: `"select": ["id","protocol"]`. O servidor tolera JSON-string (`"[\"id\",\"protocol\"]"`) e comma-string (`"id,protocol"`), mas **envie no formato canônico**.
+3. **`$select` é obrigatório nos endpoints de tickets.** Sem `select`, a API retorna `HTTP 400 "The $select parameter is required"`. Mínimo: `["id"]`. Sempre que listar tickets, passe ao menos os campos que vai realmente usar.
+4. **`top` ≤ 250 em tickets.** Volumes maiores instabilizam a API (HTTP 500 silencioso). O servidor clampa implicitamente para 250 e devolve um aviso, mas planeje no limite desde a primeira chamada.
+5. **Para contar registros, use `tickets_list` com `top: 1` e `all: false`** — não existe endpoint `/$count`, `/count`, ou similar. Olhe o tamanho do array retornado, ou pagine se precisar do total exato.
+
+## Outras constraints persistentes
 
 - **Rate limit: 10 requests/minute per tenant token**, shared with anything else hitting Movidesk. Burning the budget mid-task strands the user. Prefer one well-shaped page over many speculative calls.
 - **Response cap: 256 KB per tool call.** Beyond that the result is truncated with `[truncado: resposta excedeu 262144 bytes; refine $select ou $top]`. When you see that marker, narrow `select` or shrink `top` — do not retry with the same shape.
@@ -144,7 +154,7 @@ These come up over and over — internalise them:
 
 The MCP server exposes pagination through four args:
 
-- `top` — page size sent as `$top`. `0` lets the server pick (typically 50). Push it up to ~100 when the rows are slim; keep it ≤25 when expanding heavy relations.
+- `top` — page size sent as `$top`. `0` lets the server pick (typically 50). Push it up to ~100 when the rows are slim; keep it ≤25 when expanding heavy relations. **Tickets têm cap implícito de 250** — pedir mais é clampado pelo servidor e devolve um aviso (Movidesk retorna HTTP 500 em volumes maiores).
 - `skip` — offset (`$skip`). Use to fetch a specific window without auto-pagination.
 - `all: true` — auto-paginate until exhaustion or `max`. `top` becomes the page size. This is **one call from the user's perspective but many from the rate-limiter's**.
 - `max` — row cap when `all: true`. Defaults to 500. Always set it explicitly when you suspect the dataset is large.
@@ -287,10 +297,15 @@ Use `query`. Always start with a tiny page (`top: 5`) so the structure is visibl
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
+| HTTP 400 `"The $select parameter is required"` | Called a tickets endpoint sem `select`. | Sempre passe `select`, mínimo `["id"]`. |
 | HTTP 400 `"segment '…' isn't Navigation/Structural/…"` | Treated a string field as nav (e.g. `ownerTeam/name`). | Use the bare field. |
 | HTTP 400 on date filter | `+00:00` or naive timestamp. | Switch to `…Z`. |
 | HTTP 400 `"Could not find a property named '…'"` | Field name wrong or pluralisation off. | Cross-check against the resource table above or `movidesk://odata-filter-syntax`. |
+| `validating /properties/select: type: … has type "string", want one of "null, array"` (versões antigas do servidor) | Enviou `select` como string-JSON ou comma-string em servidor sem normalização. | Envie como array JSON `["id","protocol"]`. Atualize o servidor (≥ próximo release) se quiser tolerância. |
 | HTTP 429 | Burned 10 req/min budget. | Stop, wait, plan a tighter strategy. Mention to the user. |
+| HTTP 500 com `top` alto em tickets | Movidesk rejeita páginas grandes. | Use `top` ≤ 250 (o servidor já clampa, mas planeje). Paginação via `all: true` + `max`. |
+| `aviso: top=N reduzido para 250` prefixando a resposta | Servidor clampou um `top` alto. | Aceite o aviso e, se precisar de mais linhas, use `all: true` + `max`. |
+| HTTP 404 em `query` com `path: "/tickets/$count"` (ou similar) | Endpoint inexistente. | Para contar, use `tickets_list` com `top: 1`. Para sweep total, `all: true` + `max`. |
 | `[truncado: …]` marker | 256 KB cap hit. | Narrow `select`, shrink `top`, drop heavy `expand`. |
 | Empty list for old ticket | `tickets_list` only covers ~90 days. | Switch to `tickets_past_list`. |
 | `informe id OU protocol (exatamente um)` | Sent both (or neither) to `tickets_get`. | Pick one. |
