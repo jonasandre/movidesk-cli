@@ -20,8 +20,8 @@ public REST API.
 ## Install
 
 ```bash
-# Homebrew (macOS / Linux)
-brew install jonasandre/movidesk/movidesk-cli
+# Homebrew (macOS / Linux) — distributed as a Cask
+brew install --cask jonasandre/movidesk/movidesk-cli
 
 # Pre-built binary — pick your archive at:
 #   https://github.com/jonasandre/movidesk-cli/releases
@@ -29,6 +29,20 @@ brew install jonasandre/movidesk/movidesk-cli
 # From source
 go install github.com/jonasandre/movidesk-cli/cmd/movidesk-cli@latest
 ```
+
+> **macOS first-run note.** The released binary is not yet
+> Apple-notarized, so Gatekeeper quarantines it on first launch and the
+> process is killed silently (exit `137`). Strip the quarantine flag
+> once after install:
+>
+> ```bash
+> xattr -dr com.apple.quarantine "$(brew --caskroom)/movidesk-cli"
+> # or, without Homebrew:
+> xattr -dr com.apple.quarantine /path/to/movidesk-cli
+> ```
+>
+> Re-run after each upgrade until proper signing/notarization lands
+> (tracked in [`docs/RELEASING.md`](./docs/RELEASING.md)).
 
 Enable shell tab-completion (Cobra ships bash, zsh, fish, PowerShell):
 
@@ -38,7 +52,9 @@ movidesk-cli completion bash > /usr/local/etc/bash_completion.d/movidesk-cli
 movidesk-cli completion fish > ~/.config/fish/completions/movidesk-cli.fish
 ```
 
-The Homebrew formula registers completions automatically.
+The Homebrew Cask registers `bash`, `zsh`, and `fish` completions
+automatically; the snippets above are only needed for installs outside
+Homebrew.
 
 ## Quickstart
 

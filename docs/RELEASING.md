@@ -82,23 +82,35 @@ tag, runs `goreleaser release --clean`, and:
 - Builds darwin/linux/windows × amd64/arm64 from `cmd/movidesk-cli`.
 - Bundles `LICENSE`, `README.md`, `CHANGELOG.md` in each archive.
 - Publishes a **draft** GitHub release with auto-generated notes.
-- Pushes a Homebrew formula to `jonasandre/homebrew-movidesk/Formula/`.
+- Pushes a Homebrew **Cask** to
+  `jonasandre/homebrew-movidesk/Casks/movidesk-cli.rb`. The Cask wires
+  up `binary` plus `bash_completion` / `zsh_completion` /
+  `fish_completion`; the `before` hook in `.goreleaser.yaml` generates
+  the completion scripts via `go run ./cmd/movidesk-cli completion ...`
+  so they get bundled into every archive (failing to ship them aborts
+  `brew install --cask` at link time).
 
 ## After the workflow finishes
 
 1. Review the draft release on the GitHub Releases page. The body comes
    from your conventional-commit history grouped by `feat:` / `fix:` /
    `chore:` etc. (see `.goreleaser.yaml` `changelog.groups`).
-2. Smoke-test on at least one platform:
+2. Smoke-test on at least one platform. The package is distributed as a
+   **Cask** (not a Formula), so always pass `--cask`. macOS Gatekeeper
+   currently quarantines the binary because we have not yet notarized
+   it — strip the quarantine attribute after install or the process is
+   killed silently (exit `137`):
    ```bash
-   brew uninstall movidesk-cli || true
+   brew uninstall --cask movidesk-cli || true
    brew untap jonasandre/movidesk || true
    brew tap jonasandre/movidesk
-   brew install movidesk-cli
+   brew install --cask movidesk-cli
+   xattr -dr com.apple.quarantine "$(brew --caskroom)/movidesk-cli" || true
    movidesk-cli --version
    movidesk-cli --help
    ```
-3. **Publish** the draft release once you're satisfied.
+3. **Publish** the draft release once you're satisfied:
+   `gh release edit vX.Y.Z --draft=false --latest`.
 
 ## Local snapshots
 
@@ -123,9 +135,34 @@ git push --delete origin vX.Y.Z
 # Optionally: revert the offending commit on main and cut vX.Y.Z+1 fresh.
 ```
 
-The Homebrew formula will still point at the deleted release until the
-next release overwrites it. Push a manual revert PR to the tap repo if
-the broken version is critical.
+The Homebrew Cask in `jonasandre/homebrew-movidesk/Casks/` will still
+point at the deleted release until the next release overwrites it. Push
+a manual revert PR to the tap repo if the broken version is critical.
+
+## macOS signing & notarization (TODO)
+
+The release binary is built with Go's ad-hoc linker signature and is
+**not** Apple-notarized. macOS Gatekeeper therefore stamps it with
+`com.apple.quarantine` on first run and silently SIGKILLs the process
+(exit `137`). Users work around this with `xattr -dr
+com.apple.quarantine ...` after install (documented in `README.md`).
+
+Proper fix requires:
+
+1. An Apple Developer Program subscription ($99/year) and a
+   **Developer ID Application** certificate exported to `.p12`.
+2. An app-specific password (or App Store Connect API key) for
+   notarytool.
+3. A signing/notarization stanza in `.goreleaser.yaml` — e.g.
+   GoReleaser's `notarize` block driven by
+   [`rcodesign`](https://github.com/indygreg/apple-platform-rs) or
+   [`gon`](https://github.com/Bearer/gon), with the cert + password
+   exposed to the release workflow as repository secrets
+   (`APPLE_DEVELOPER_CERT_P12`, `APPLE_DEVELOPER_CERT_PASSWORD`,
+   `APPLE_ID`, `APPLE_NOTARY_PASSWORD`, `APPLE_TEAM_ID`).
+
+Until then, the README's quarantine-strip instructions are the official
+workaround.
 
 ## Versioning policy
 
