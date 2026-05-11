@@ -10,6 +10,37 @@ projeto adere ao
 
 ## [Unreleased]
 
+## [1.2.1] — 2026-05-11
+
+### Corrigido
+
+- MCP: parâmetros `select` / `expand` / `orderby` passam a aceitar três
+  formas no wire — JSON array canônico (`["id","protocol"]`),
+  JSON-string (`"[\"id\",\"protocol\"]"`) e comma-string
+  (`"id,protocol"`) — convertidas automaticamente para o array
+  canônico. O schema declarado para o LLM mantém array como forma
+  preferida, mas a validação aceita as três variantes para evitar
+  falhas de tipo geradas por LLMs mal-comportados.
+- MCP: `tickets_list` e `tickets_past_list` aplicam clamp implícito em
+  `top > 250`, reduzindo a 250 e anexando aviso visível na resposta.
+  Movidesk retorna HTTP 500 esporádicos em páginas maiores; o clamp
+  evita que a falha se propague ao usuário.
+
+### Atualizado
+
+- MCP: descrições de todas as tools `*_list` (`tickets_list`,
+  `tickets_past_list`, `persons_list`, `services_list`,
+  `contracts_list`, `contracts_consumption_list`) ganham exemplos
+  literais (`{"select": [...], "filter": "...", "top": N}`) e, em
+  tickets, notas explícitas de `$select` obrigatório e cap de `top`.
+- MCP: descrição da tool `query` reforça que o `path` deve apontar
+  para endpoints reais do Movidesk e enumera os principais; alerta
+  que `/$count`, `/count` e variantes não existem.
+- SKILL `movidesk-mcp`: bloco "Regras críticas" no topo (formato de
+  lista, `$select` obrigatório, cap de `top`, contagem via `top: 1`,
+  paths permitidos). Cheatsheet de erros expandido com `$select`
+  required (HTTP 400), HTTP 500 em volumes altos e aviso de clamp.
+
 ## [1.2.0] — 2026-05-11
 
 ### Adicionado
