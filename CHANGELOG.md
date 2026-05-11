@@ -10,6 +10,22 @@ projeto adere ao
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-05-11
+
+### Alterado
+
+- Toda a interface do CLI agora é em português brasileiro: helpers de
+  comando (Cobra `Short`/`Long`), descrições de flag, prompts
+  interativos, mensagens de sucesso e mensagens de erro user-facing
+  foram traduzidas. Comportamento, nomes de comandos/flags, env vars
+  e chaves YAML permanecem em inglês — só o texto exibido ao usuário
+  mudou. `README.md` e este `CHANGELOG.md` também foram traduzidos
+  para pt-BR.
+- Removido o linter `misspell` (dicionário en-US apenas) do
+  `.golangci.yml`. As strings agora são bilíngues (identificadores Go
+  em inglês, texto user-facing em pt-BR) e o linter passou a gerar
+  falsos positivos em todo arquivo.
+
 ## [1.0.2] — 2026-05-08
 
 ### Corrigido
@@ -142,7 +158,8 @@ integração do Movidesk.
   subjacente reemite a resposta sem alterações, então mesmo campos
   que o SDK ainda não tipa são preservados de ponta a ponta.
 
-[Unreleased]: https://github.com/jonasandre/movidesk-cli/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/jonasandre/movidesk-cli/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/jonasandre/movidesk-cli/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/jonasandre/movidesk-cli/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/jonasandre/movidesk-cli/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/jonasandre/movidesk-cli/releases/tag/v1.0.0
