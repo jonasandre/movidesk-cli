@@ -2,8 +2,21 @@
 
 Lista chamados arquivados (mais de 90 dias)
 
+### Synopsis
+
+Lista chamados arquivados via GET /tickets/past. Aceita os mesmos
+operadores e funções OData de 'tickets list'.
+
+Sintaxe completa em: movidesk-cli topics filters
+
 ```
 movidesk-cli tickets past list [flags]
+```
+
+### Examples
+
+```
+  movidesk-cli tickets past list --filter "createdDate lt 2024-01-01T00:00:00.000Z and ownerTeam eq 'Qlik'" --top 50
 ```
 
 ### Options

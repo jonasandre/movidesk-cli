@@ -91,10 +91,14 @@ Alguns pontos de entrada comuns:
 | `telephony` | `queue`, `nonqueue`, `made-call-link` |
 | `customfields` | `options add/rename/remove` |
 | `query` | escape hatch OData bruto |
+| `topics` | páginas de ajuda longas (ex.: `topics filters` — sintaxe OData) |
 
 `movidesk-cli <comando> --help` sempre exibe as flags locais. As páginas
 de referência em `docs/cli/` são geradas automaticamente e cobrem
-todo subcomando.
+todo subcomando. Para a sintaxe completa aceita por `--filter` /
+`--select` / `--orderby` (operadores, funções, datas, campos comuns por
+recurso e armadilhas como `ownerTeam` ser string e não navegação), rode
+`movidesk-cli topics filters`.
 
 ## Convenções
 

@@ -37,6 +37,11 @@ func newServicesListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "Lista serviços",
+		Long: `Lista serviços via GET /services. Campos comuns: id, name,
+parentServiceId, isVisible, allowFinalUser.
+
+Sintaxe completa em: movidesk-cli topics filters`,
+		Example: `  movidesk-cli services list --filter "isVisible eq true" --select "id,name"`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			r, err := resolveClient(cmd)
 			if err != nil {

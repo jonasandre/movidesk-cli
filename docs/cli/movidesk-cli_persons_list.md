@@ -2,8 +2,26 @@
 
 Lista pessoas
 
+### Synopsis
+
+Lista pessoas via GET /persons. Aceita filtros OData; campos comuns:
+id, businessName, personType (1=Pessoa, 2=Empresa, 4=Departamento),
+profileType (1=Agente, 2=Cliente, 3=Ambos), isActive.
+
+Sintaxe completa em: movidesk-cli topics filters
+
 ```
 movidesk-cli persons list [flags]
+```
+
+### Examples
+
+```
+  # empresas ativas
+  movidesk-cli persons list --filter "personType eq 2 and isActive eq true" --select "id,businessName"
+
+  # agentes cujo nome começa com "Ana"
+  movidesk-cli persons list --filter "profileType ne 2 and startswith(businessName, 'Ana')"
 ```
 
 ### Options

@@ -10,6 +10,18 @@ projeto adere ao
 
 ## [Unreleased]
 
+### Adicionado
+
+- Novo comando `movidesk-cli topics filters`: referência embutida da
+  sintaxe OData aceita pelo Movidesk em `--filter` / `--select` /
+  `--orderby` — operadores, funções, formatos de literal (datas em UTC
+  com sufixo `Z`), campos comuns por recurso (`tickets`, `persons`,
+  `services`, `contracts`) e armadilhas frequentes (notadamente
+  `ownerTeam` ser um campo string, não navegação, o que causava HTTP
+  400 "segment isn't Navigation/Structural/Complex/Collections" quando
+  filtros eram gerados por LLMs). Cada `list` que aceita `--filter`
+  ganhou bloco de exemplos próprio e ponteiro para o tópico.
+
 ## [1.1.0] — 2026-05-11
 
 ### Alterado

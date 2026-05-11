@@ -2,8 +2,21 @@
 
 Lista serviços
 
+### Synopsis
+
+Lista serviços via GET /services. Campos comuns: id, name,
+parentServiceId, isVisible, allowFinalUser.
+
+Sintaxe completa em: movidesk-cli topics filters
+
 ```
 movidesk-cli services list [flags]
+```
+
+### Examples
+
+```
+  movidesk-cli services list --filter "isVisible eq true" --select "id,name"
 ```
 
 ### Options

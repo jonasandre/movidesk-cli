@@ -2,8 +2,21 @@
 
 Lista contratos de horas
 
+### Synopsis
+
+Lista contratos via GET /contracts. Campos comuns: id, name,
+isActive, beginDate, endDate, accountId.
+
+Sintaxe completa em: movidesk-cli topics filters
+
 ```
 movidesk-cli contracts list [flags]
+```
+
+### Examples
+
+```
+  movidesk-cli contracts list --filter "isActive eq true" --orderby "beginDate desc"
 ```
 
 ### Options

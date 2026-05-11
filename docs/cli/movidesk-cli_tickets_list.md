@@ -2,8 +2,28 @@
 
 Lista chamados (últimos 90 dias; mais antigos em `tickets past list`)
 
+### Synopsis
+
+Lista chamados via GET /tickets. Cobre apenas os últimos 90 dias —
+para chamados arquivados use 'tickets past list' com os mesmos filtros.
+
+A sintaxe completa de --filter, --select e --orderby está em:
+  movidesk-cli topics filters
+
 ```
 movidesk-cli tickets list [flags]
+```
+
+### Examples
+
+```
+  # tickets em atendimento, ordenados pelo mais recente
+  movidesk-cli tickets list --filter "baseStatus eq 'InAttendance'" --orderby "createdDate desc" --top 20
+
+  # tickets de abril/2026 do time "Qlik" (ownerTeam é string, não navegação)
+  movidesk-cli tickets list --all \
+    --filter "createdDate ge 2026-04-01T00:00:00.000Z and createdDate lt 2026-05-01T00:00:00.000Z and ownerTeam eq 'Qlik'" \
+    --select "id,protocol,subject"
 ```
 
 ### Options

@@ -23,7 +23,6 @@ linters:
       # Console writes via fmt.Fprintln/Fprintf rarely warrant error handling.
       - linters: [errcheck]
         text: 'Error return value of `fmt\.(Fprintln|Fprintf|Fprint)` is not checked'
-  settings:
 
 formatters:
   enable:

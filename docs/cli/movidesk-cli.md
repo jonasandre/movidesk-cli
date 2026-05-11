@@ -36,4 +36,5 @@ limite de 10 requisições por minuto do Movidesk com retentativa automática em
 * [movidesk-cli surveys](movidesk-cli_surveys.md)	 - Lê dados de pesquisas de satisfação do Movidesk (/survey/...)
 * [movidesk-cli telephony](movidesk-cli_telephony.md)	 - Dispara eventos de chamada do Movidesk (asterisk_*)
 * [movidesk-cli tickets](movidesk-cli_tickets.md)	 - Gerencia chamados (tickets) do Movidesk
+* [movidesk-cli topics](movidesk-cli_topics.md)	 - Tópicos de ajuda detalhados (sintaxe, convenções, armadilhas)
 

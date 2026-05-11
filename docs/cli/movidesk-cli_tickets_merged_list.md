@@ -2,8 +2,21 @@
 
 Lista chamados mesclados
 
+### Synopsis
+
+Lista chamados mesclados via GET /tickets/merged. Mesma sintaxe OData
+dos demais 'list'.
+
+Sintaxe completa em: movidesk-cli topics filters
+
 ```
 movidesk-cli tickets merged list [flags]
+```
+
+### Examples
+
+```
+  movidesk-cli tickets merged list --filter "originalId eq 12345"
 ```
 
 ### Options

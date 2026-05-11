@@ -7,15 +7,21 @@ Chamada HTTP bruta contra qualquer endpoint do Movidesk
 Escape hatch genérico. O caminho é relativo à base da API, ex.: "tickets",
 "/tickets", "/persons". O token é injetado automaticamente.
 
-Exemplos:
-  movidesk-cli query /tickets --filter "id eq 1"
-  movidesk-cli query /persons --select id,businessName --top 5
-  movidesk-cli query /persons --method GET --param id=abc
+Sintaxe completa de --filter / --select / --orderby em:
+  movidesk-cli topics filters
 
 O formato de saída segue --output (json|table|csv); use -o json com jq pra fatiar mais.
 
 ```
 movidesk-cli query <path> [flags]
+```
+
+### Examples
+
+```
+  movidesk-cli query /tickets --filter "id eq 1"
+  movidesk-cli query /persons --select id,businessName --top 5
+  movidesk-cli query /persons --method GET --param id=abc
 ```
 
 ### Options

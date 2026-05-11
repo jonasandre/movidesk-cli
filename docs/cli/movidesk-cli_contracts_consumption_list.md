@@ -2,8 +2,21 @@
 
 Lista linhas de consumo
 
+### Synopsis
+
+Lista linhas de consumo via GET /contracts/{id}/consumption. Mesma
+sintaxe OData dos demais 'list'.
+
+Sintaxe completa em: movidesk-cli topics filters
+
 ```
 movidesk-cli contracts consumption list [flags]
+```
+
+### Examples
+
+```
+  movidesk-cli contracts consumption list --filter "contractId eq 7" --top 100
 ```
 
 ### Options

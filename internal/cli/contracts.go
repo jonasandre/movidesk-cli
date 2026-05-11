@@ -34,6 +34,11 @@ func newContractsListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "Lista contratos de horas",
+		Long: `Lista contratos via GET /contracts. Campos comuns: id, name,
+isActive, beginDate, endDate, accountId.
+
+Sintaxe completa em: movidesk-cli topics filters`,
+		Example: `  movidesk-cli contracts list --filter "isActive eq true" --orderby "beginDate desc"`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -224,6 +229,11 @@ func newContractsConsumptionListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "Lista linhas de consumo",
+		Long: `Lista linhas de consumo via GET /contracts/{id}/consumption. Mesma
+sintaxe OData dos demais 'list'.
+
+Sintaxe completa em: movidesk-cli topics filters`,
+		Example: `  movidesk-cli contracts consumption list --filter "contractId eq 7" --top 100`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			r, err := resolveClient(cmd)
 			if err != nil {

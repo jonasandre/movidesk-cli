@@ -96,6 +96,18 @@ func newTicketsListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "Lista chamados (últimos 90 dias; mais antigos em `tickets past list`)",
+		Long: `Lista chamados via GET /tickets. Cobre apenas os últimos 90 dias —
+para chamados arquivados use 'tickets past list' com os mesmos filtros.
+
+A sintaxe completa de --filter, --select e --orderby está em:
+  movidesk-cli topics filters`,
+		Example: `  # tickets em atendimento, ordenados pelo mais recente
+  movidesk-cli tickets list --filter "baseStatus eq 'InAttendance'" --orderby "createdDate desc" --top 20
+
+  # tickets de abril/2026 do time "Qlik" (ownerTeam é string, não navegação)
+  movidesk-cli tickets list --all \
+    --filter "createdDate ge 2026-04-01T00:00:00.000Z and createdDate lt 2026-05-01T00:00:00.000Z and ownerTeam eq 'Qlik'" \
+    --select "id,protocol,subject"`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -316,6 +328,11 @@ func newTicketsPastListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "Lista chamados arquivados (mais de 90 dias)",
+		Long: `Lista chamados arquivados via GET /tickets/past. Aceita os mesmos
+operadores e funções OData de 'tickets list'.
+
+Sintaxe completa em: movidesk-cli topics filters`,
+		Example: `  movidesk-cli tickets past list --filter "createdDate lt 2024-01-01T00:00:00.000Z and ownerTeam eq 'Qlik'" --top 50`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			r, err := resolveClient(cmd)
 			if err != nil {
@@ -363,6 +380,11 @@ func newTicketsMergedListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "Lista chamados mesclados",
+		Long: `Lista chamados mesclados via GET /tickets/merged. Mesma sintaxe OData
+dos demais 'list'.
+
+Sintaxe completa em: movidesk-cli topics filters`,
+		Example: `  movidesk-cli tickets merged list --filter "originalId eq 12345"`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			r, err := resolveClient(cmd)
 			if err != nil {
