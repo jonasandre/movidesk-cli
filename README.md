@@ -100,6 +100,43 @@ todo subcomando. Para a sintaxe completa aceita por `--filter` /
 recurso e armadilhas como `ownerTeam` ser string e não navegação), rode
 `movidesk-cli topics filters`.
 
+## Servidor MCP (uso em chat apps)
+
+A CLI também sobe como **servidor [Model Context Protocol](https://modelcontextprotocol.io/)**
+via `movidesk-cli mcp`, expondo a API do Movidesk como ferramentas
+estruturadas para chat apps que falam MCP (Claude Desktop, Cline, Continue,
+etc.) e não conseguem chamar CLIs arbitrárias.
+
+```jsonc
+// ~/Library/Application Support/Claude/claude_desktop_config.json
+{
+  "mcpServers": {
+    "movidesk": {
+      "command": "movidesk-cli",
+      "args": ["mcp", "--tenant", "acme"]
+    }
+  }
+}
+```
+
+- Transport: stdio (stdin/stdout). `--verbose` vai para stderr.
+- Um processo MCP = um tenant; resolvido no boot via `--tenant` /
+  `MOVIDESK_TENANT` / tenant atual em `~/.movidesk/config.yaml`.
+- Escopo v1: só leitura. 22 tools (`tickets_list`, `tickets_get`,
+  `tickets_timeline`, `persons_list`, `services_list`, `contracts_list`,
+  `kb_article_get`, `activities_list`, `surveys_responses_list`,
+  `query`, …).
+- Resources: `movidesk://odata-filter-syntax` (sintaxe completa de filtros),
+  `movidesk://server-info` (diagnóstico) e
+  `movidesk://customfields-catalog` (catálogo local de custom fields do
+  tenant — exibido quando `~/.movidesk/<tenant>/customfields.yaml` existir).
+- Defaults de segurança: `all=true` sem `max` limita em 500 linhas para não
+  estourar o limite de 10 req/min; respostas acima de 256 KiB são truncadas
+  com aviso.
+
+Se o tenant guarda o token em arquivo (em vez do chaveiro do SO), inclua
+`MOVIDESK_PASSPHRASE` na chave `env` da configuração do chat app.
+
 ## Convenções
 
 **Token e tenant override** — `--tenant <nome>` ou `MOVIDESK_TENANT`

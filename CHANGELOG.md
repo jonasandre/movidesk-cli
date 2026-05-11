@@ -10,6 +10,20 @@ projeto adere ao
 
 ## [Unreleased]
 
+### Adicionado
+
+- Servidor MCP (Model Context Protocol) embutido: `movidesk-cli mcp`
+  inicia um servidor stdio que expõe a API do Movidesk como ferramentas
+  estruturadas para chat apps compatíveis (Claude Desktop, Cline,
+  Continue, etc.). 22 tools read-only cobrindo tickets, persons,
+  services, contracts, knowledge base, activities, surveys e um escape
+  hatch `query` para qualquer endpoint OData. Resources expõem a
+  sintaxe completa de filtros OData e o catálogo de custom fields do
+  tenant para resolução label↔id pelo modelo. Caps de segurança:
+  `all=true` sem `max` limita em 500 linhas para preservar o budget de
+  10 req/min; respostas >256 KiB são truncadas com aviso. Erros 429 são
+  traduzidos em mensagem clara para o LLM fazer backoff.
+
 ## [1.1.1] — 2026-05-11
 
 ### Adicionado

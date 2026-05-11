@@ -30,6 +30,7 @@ limite de 10 requisições por minuto do Movidesk com retentativa automática em
 * [movidesk-cli contracts](movidesk-cli_contracts.md)	 - Gerencia contratos de horas do Movidesk (/timeAgreement)
 * [movidesk-cli customfields](movidesk-cli_customfields.md)	 - Gerencia o conjunto de opções de campos personalizados do tipo lista (por tenant)
 * [movidesk-cli kb](movidesk-cli_kb.md)	 - Lê artigos da base de conhecimento do Movidesk (/article/:id)
+* [movidesk-cli mcp](movidesk-cli_mcp.md)	 - Inicia um servidor MCP via stdio expondo a API do Movidesk como ferramentas
 * [movidesk-cli persons](movidesk-cli_persons.md)	 - Gerencia pessoas do Movidesk (/persons)
 * [movidesk-cli query](movidesk-cli_query.md)	 - Chamada HTTP bruta contra qualquer endpoint do Movidesk
 * [movidesk-cli services](movidesk-cli_services.md)	 - Gerencia o catálogo de serviços do Movidesk (/services)

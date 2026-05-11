@@ -51,6 +51,7 @@ limite de 10 requisições por minuto do Movidesk com retentativa automática em
 	cmd.AddCommand(newTelephonyCmd())
 	cmd.AddCommand(newCustomFieldsCmd())
 	cmd.AddCommand(newQueryCmd())
+	cmd.AddCommand(newMCPCmd())
 	cmd.AddCommand(newTopicsCmd())
 	_ = flags // referenced by subcommand packages
 
