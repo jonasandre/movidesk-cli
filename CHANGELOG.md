@@ -10,6 +10,8 @@ projeto adere ao
 
 ## [Unreleased]
 
+## [1.2.0] — 2026-05-11
+
 ### Adicionado
 
 - Servidor MCP (Model Context Protocol) embutido: `movidesk-cli mcp`
