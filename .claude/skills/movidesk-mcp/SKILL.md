@@ -20,8 +20,8 @@ Pick the most specific tool — `query` is the escape hatch, not the default.
 
 | Domain | Tool | When to use |
 |---|---|---|
-| Tickets | `tickets_list` | Recent tickets (≤90d). Supports `$filter`/`$select`/`$expand`/`$orderby`. |
-| Tickets | `tickets_past_list` | Archived tickets (`lastUpdate` >90d). Same OData shape, no `include_deleted`. |
+| Tickets | `tickets_list` | Recent tickets (≤90d). Use when the query needs current/in-progress data. Supports `$filter`/`$select`/`$expand`/`$orderby`. |
+| Tickets | `tickets_past_list` | Archived tickets (`lastUpdate` >90d). Same OData shape, no `include_deleted`. **Prefer this when the user's request is purely historical** — see selection rule below. |
 | Tickets | `tickets_get` | Single ticket by `id` **xor** `protocol`. Never pass both. |
 | Tickets | `tickets_html_description` | Raw HTML body of ticket (`action_id=0`) or a specific action. |
 | Tickets | `tickets_actions_list` | All actions (messages, internal notes) of one ticket. |
@@ -38,6 +38,19 @@ Pick the most specific tool — `query` is the escape hatch, not the default.
 | Surveys | `surveys_questions_list` / `_get` | Satisfaction-survey questions. `type` filter is an int, **not** an OData expression. |
 | Surveys | `surveys_responses_list` | Responses, cursor-paginated server-side; capped by `max`. |
 | Escape hatch | `query` | Any read-only OData endpoint not covered above. Path must start with `/`. |
+
+### `tickets_list` vs `tickets_past_list`
+
+The two endpoints sit on different indexes. `/tickets` is the live operational index (last ~90 days by `lastUpdate`); `/tickets/past` is the archive. They share the OData syntax but the wrong choice either misses rows or wastes the request budget.
+
+Decision rule:
+
+- **Today's / in-progress / "open right now" data** — use `tickets_list`. The archive lags behind and would miss tickets that just changed state.
+- **Purely historical, no need for today's data** (e.g. "tickets resolved last quarter", "everything Qlik closed in March", "audit of 2024 escalations") — prefer `tickets_past_list`. It hits the archive directly, which is optimised for this kind of scan; using `tickets_list` and filtering by old dates often returns zero rows because the archive cutoff already excluded them.
+- **Window straddles the 90-day boundary** — if you need recent + old in one answer, you must call both and merge client-side. Movidesk does not expose a unified view.
+- **One specific ticket by `id` or `protocol`** — use `tickets_get`. It works regardless of age, so the boundary question doesn't apply.
+
+If a `tickets_list` filter on an old `createdDate`/`lastUpdate` window returns empty when you expected data, that's the archive cutoff biting — switch to `tickets_past_list` with the same filter and try again. Do not retry the same call on `tickets_list`.
 
 ## Resources to read on demand
 
