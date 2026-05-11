@@ -8,3 +8,6 @@ coverage.out
 .vscode/
 .DS_Store
 .remember/
+.claude/scheduled_tasks.lock
+.claude/skills/*.skill
+.claude/skills/*-workspace/

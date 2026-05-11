@@ -137,6 +137,20 @@ etc.) e não conseguem chamar CLIs arbitrárias.
 Se o tenant guarda o token em arquivo (em vez do chaveiro do SO), inclua
 `MOVIDESK_PASSPHRASE` na chave `env` da configuração do chat app.
 
+### Skill do Claude para o servidor MCP
+
+Para que o Claude acerte filtros, paginação e expansões deste servidor
+MCP sem chutar, instale a skill `movidesk-mcp`:
+
+```bash
+mkdir -p ~/.claude/skills/movidesk-mcp && \
+  curl -fsSL https://raw.githubusercontent.com/jonasandre/movidesk-cli/main/.claude/skills/movidesk-mcp/SKILL.md \
+    -o ~/.claude/skills/movidesk-mcp/SKILL.md
+```
+
+A skill fica disponível na próxima sessão do Claude Code / Claude
+Desktop. Para remover, apague o diretório.
+
 ## Convenções
 
 **Token e tenant override** — `--tenant <nome>` ou `MOVIDESK_TENANT`
