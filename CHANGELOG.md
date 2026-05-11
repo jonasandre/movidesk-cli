@@ -10,6 +10,8 @@ projeto adere ao
 
 ## [Unreleased]
 
+## [1.1.1] — 2026-05-11
+
 ### Adicionado
 
 - Novo comando `movidesk-cli topics filters`: referência embutida da
@@ -21,6 +23,12 @@ projeto adere ao
   400 "segment isn't Navigation/Structural/Complex/Collections" quando
   filtros eram gerados por LLMs). Cada `list` que aceita `--filter`
   ganhou bloco de exemplos próprio e ponteiro para o tópico.
+
+### Corrigido
+
+- `.golangci.yml`: removida chave `linters.settings` vazia que quebrava
+  `golangci-lint v2.12 config verify` no GitHub Actions com
+  `"linters.settings" ... got null, want object`.
 
 ## [1.1.0] — 2026-05-11
 
