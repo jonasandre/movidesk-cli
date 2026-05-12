@@ -19,15 +19,14 @@ Interface de linha de comando para a API REST pública do
 
 ## Instalação
 
+### macOS
+
 ```bash
-# Homebrew (macOS / Linux) — distribuído como Cask
+# Homebrew — distribuído como Cask
 brew install --cask jonasandre/movidesk/movidesk-cli
 
-# Binário pré-compilado — escolha o arquivo em:
+# Ou baixe o tar.gz correspondente em:
 #   https://github.com/jonasandre/movidesk-cli/releases
-
-# Compilando da fonte
-go install github.com/jonasandre/movidesk-cli/cmd/movidesk-cli@latest
 ```
 
 > **Nota macOS — primeira execução.** O binário publicado ainda não é
@@ -45,12 +44,71 @@ go install github.com/jonasandre/movidesk-cli/cmd/movidesk-cli@latest
 > Repita após cada atualização até que a assinatura/notarização seja
 > implantada (acompanhado em [`docs/RELEASING.md`](./docs/RELEASING.md)).
 
+### Linux
+
+```bash
+# Homebrew — distribuído como Cask
+brew install --cask jonasandre/movidesk/movidesk-cli
+
+# Ou extraia o tar.gz correspondente em:
+#   https://github.com/jonasandre/movidesk-cli/releases
+tar -xzf movidesk-cli_<versao>_linux_amd64.tar.gz
+sudo install -m 0755 movidesk-cli /usr/local/bin/movidesk-cli
+```
+
+Os releases publicados incluem binários para `linux_amd64` e
+`linux_arm64`.
+
+### Windows
+
+```powershell
+# Um comando só: baixa o último release, extrai, adiciona ao Path do usuário
+# e instala a skill do Claude se ~/.claude já existir
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/jonasandre/movidesk-cli/main/scripts/install-windows.ps1 | iex"
+```
+
+Se preferir revisar o script antes de executar, ele está em
+[`scripts/install-windows.ps1`](./scripts/install-windows.ps1). Também dá
+para instalar uma versão específica:
+
+```powershell
+Invoke-WebRequest https://raw.githubusercontent.com/jonasandre/movidesk-cli/main/scripts/install-windows.ps1 -OutFile .\install-windows.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install-windows.ps1 -Version 1.2.1
+```
+
+Se o instalador detectar `~/.claude`, ele também baixa
+`movidesk-mcp/SKILL.md` da mesma versão instalada e a registra em
+`~/.claude/skills/movidesk-mcp/`.
+
+Fallback manual:
+
+```powershell
+# Baixe o zip correspondente em:
+#   https://github.com/jonasandre/movidesk-cli/releases
+$installDir = "$env:LOCALAPPDATA\Programs\movidesk-cli"
+New-Item -ItemType Directory -Force -Path $installDir | Out-Null
+Expand-Archive .\movidesk-cli_<versao>_windows_amd64.zip -DestinationPath $installDir -Force
+```
+
+Os releases publicados incluem binários para `windows_amd64` e
+`windows_arm64`.
+
+### Compilando da fonte
+
+```bash
+go install github.com/jonasandre/movidesk-cli/cmd/movidesk-cli@latest
+```
+
 Habilitar autocompletar no shell (Cobra entrega bash, zsh, fish, PowerShell):
 
 ```bash
 movidesk-cli completion zsh  > "${fpath[1]}/_movidesk-cli"
 movidesk-cli completion bash > /usr/local/etc/bash_completion.d/movidesk-cli
 movidesk-cli completion fish > ~/.config/fish/completions/movidesk-cli.fish
+```
+
+```powershell
+movidesk-cli completion powershell >> $PROFILE
 ```
 
 O Cask do Homebrew registra automaticamente as completions de `bash`,
