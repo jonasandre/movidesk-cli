@@ -139,7 +139,7 @@ Alguns pontos de entrada comuns:
 | Família | Destaques |
 |---|---|
 | `auth` | `login`, `list`, `switch`, `status`, `set-user`, `logout`, `token` |
-| `tickets` | `list`, `get`, `create`, `update`, `attach`, `actions`, `clients`, `relations`, `timeline`, `customfields`, `past`, `merged`, `html` |
+| `tickets` | `list`, `get`, `create`, `update`, `bulk-update`, `bulk-close`, `attach`, `actions`, `clients`, `relations`, `timeline`, `customfields`, `past`, `merged`, `html` |
 | `persons` | `list`, `get`, `create`, `update`, `delete`, `customfields` |
 | `services` | `list`, `get`, `create`, `update`, `delete` |
 | `activities` | `list`, `get`, `create`, `update`, `delete`, `add-teams` |
@@ -238,6 +238,20 @@ campos aninhados).
 **Rate limiting** — toda requisição passa pelo limiter interno de 10
 req/min e tenta novamente em 429/5xx respeitando `Retry-After`.
 `--no-retry` desativa retentativas pra debug.
+
+**Operações em lote (`tickets bulk-update` / `tickets bulk-close`)** —
+seleciona chamados por `--ids`, `--ids-file` ou `--filter` OData; em
+TTY abre seletor com checkbox + busca. Aplica o mesmo PATCH a todos.
+`bulk-close` ajusta `status` (padrão `Resolvido`) e cria uma `action`
+com `--message` (use `--public` para visível ao cliente). Flags úteis:
+`--dry-run` (não chama API), `--force` (pula confirmação),
+`--continue-on-error` (não aborta na primeira falha), `--report
+caminho.jsonl` (uma linha por chamado: `{id, ok, error, at}`).
+`--source live|past|both` escolhe a fonte da listagem — `live`
+(`/tickets`, padrão, cobre só os últimos 90 dias), `past`
+(`/tickets/past`, arquivados/parados há mais de 90 dias) ou `both`
+(mescla as duas, dedup por id). Lotes grandes respeitam o limiter —
+100 chamados levam ~10 min.
 
 ## Arquivos de configuração
 

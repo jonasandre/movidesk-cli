@@ -10,6 +10,28 @@ projeto adere ao
 
 ## [Unreleased]
 
+### Adicionado
+
+- `tickets bulk-update` aplica o mesmo PATCH a vários chamados. Os
+  alvos vêm de `--ids` / `--ids-file` ou de um `--filter` OData; em TTY
+  abre um seletor interativo (Bubble Tea) com busca, marcação e
+  paginação. Suporta `--dry-run`, `--force`, `--continue-on-error` e
+  `--report` (JSONL com `{id, ok, error, at}`). O corpo é montado pelos
+  mesmos `--file` / `--from-template[-file]` / `--set` de
+  `tickets update`. O rate-limit de 10 req/min do tenant continua sendo
+  respeitado pelo cliente.
+- `tickets bulk-update --source live|past|both` escolhe a fonte da
+  listagem: `live` (padrão, `/tickets`, cobre só os últimos 90 dias),
+  `past` (`/tickets/past`, arquivados — necessário pra chamados parados
+  há mais de 90 dias) ou `both` (mescla as duas e dedup por id).
+  Idêntica para `bulk-close`.
+- `tickets bulk-close` é um atalho do `bulk-update` que ajusta `status`
+  (padrão `Resolvido`), `justification` e adiciona uma `action` com o
+  texto de `--message`. `--public` registra a ação como visível ao
+  cliente; sem ele a ação é interna (`type=2`, `origin=9`).
+- Dependências: `github.com/charmbracelet/bubbletea` e
+  `github.com/charmbracelet/bubbles` para o seletor TUI.
+
 ## [1.2.1] — 2026-05-11
 
 ### Corrigido
