@@ -227,8 +227,8 @@ func (m *pickerModel) View() string {
 		return b.String()
 	}
 
-	header := fmt.Sprintf("      %-7s %-8s %-14s %-18s %-28s %-50s %s",
-		"id", "visib.", "status", "motivo", "cliente / organização", "assunto", "data alt.")
+	header := fmt.Sprintf("      %-7s %-8s %-14s %-18s %-28s %-50s %-18s %s",
+		"id", "visib.", "status", "motivo", "cliente / organização", "assunto", "data alt.", "responsável")
 	b.WriteString(stylHint.Render(header))
 	b.WriteString("\n")
 
@@ -256,8 +256,14 @@ func (m *pickerModel) View() string {
 		dateCol := r.lastChangeCell()
 		just := truncate(r.Justification, 18)
 		client := truncate(r.clientLabel(), 28)
-		line := fmt.Sprintf("  %s #%-6d %-8s %-14s %-18s %-28s %-50s %s",
-			mark, r.ID, r.visibility(), truncate(r.Status, 14), just, client, truncate(r.Subject, 50), dateCol)
+		ownerName := ""
+		if r.Owner != nil && r.Owner.BusinessName != "" {
+			ownerName = r.Owner.BusinessName
+		} else if r.OwnerTeam != "" {
+			ownerName = r.OwnerTeam + " (time)"
+		}
+		line := fmt.Sprintf("  %s #%-6d %-8s %-14s %-18s %-28s %-50s %-18s %s",
+			mark, r.ID, r.visibility(), truncate(r.Status, 14), just, client, truncate(r.Subject, 50), truncate(dateCol, 18), truncate(ownerName, 18))
 		if i == m.cursor {
 			line = "›" + line[1:]
 			line = stylCursor.Render(line)

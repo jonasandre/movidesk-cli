@@ -458,7 +458,10 @@ func fetchCandidates(cmd *cobra.Command, svc *tickets.Service, sel *bulkSelectio
 	q := sel.of.query()
 	q.Select = []string{"id", "type", "subject", "status", "baseStatus", "owner", "ownerTeam", "createdDate", "lastUpdate", "lastActionDate", "justification"}
 	if len(q.Expand) == 0 {
-		q.Expand = []string{"clients($expand=organization)"}
+		q.Expand = []string{"clients($expand=organization)", "owner"}
+	}
+	if !sel.of.all && q.Top == 0 {
+		q.Top = 100
 	}
 
 	var raw []byte
