@@ -393,7 +393,7 @@ func TestE2E_TicketsBulkUpdate_PreviewShowsJustClientAge(t *testing.T) {
 	assert.Contains(t, errOut, "Acme Ltda")
 	assert.Contains(t, errOut, "João Silva")
 	assert.Contains(t, errOut, "Aguardando cliente")
-	assert.Contains(t, errOut, "desde última alt.")
+	assert.Contains(t, errOut, "2025-12-01")
 	assert.Contains(t, errOut, "público")
 }
 

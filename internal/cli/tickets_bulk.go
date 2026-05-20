@@ -29,10 +29,59 @@ type bulkCandidate struct {
 	Owner      *struct {
 		BusinessName string `json:"businessName"`
 	} `json:"owner,omitempty"`
-	CreatedDate   string                `json:"createdDate"`
-	LastUpdate    string                `json:"lastUpdate"`
-	Justification string                `json:"justification"`
-	Clients       []bulkCandidateClient `json:"clients,omitempty"`
+	CreatedDate    string                `json:"createdDate"`
+	LastUpdate     string                `json:"lastUpdate"`
+	LastActionDate string                `json:"lastActionDate"`
+	Justification  string                `json:"justification"`
+	Clients        []bulkCandidateClient `json:"clients,omitempty"`
+}
+
+// lastChangeAt returns the most relevant "last touched" timestamp, falling
+// back when the primary field is missing (Movidesk sometimes returns
+// lastUpdate empty depending on the ticket state).
+func (c bulkCandidate) lastChangeAt() string {
+	if c.LastUpdate != "" {
+		return c.LastUpdate
+	}
+	if c.LastActionDate != "" {
+		return c.LastActionDate
+	}
+	return c.CreatedDate
+}
+
+// lastChangeCell renders "YYYY-MM-DD (Nd)" for a candidate, or just the
+// date portion when timezone parsing fails. Returns "—" when no timestamp.
+func (c bulkCandidate) lastChangeCell() string {
+	ts := c.lastChangeAt()
+	if ts == "" {
+		return "—"
+	}
+	layouts := []string{
+		time.RFC3339Nano,
+		time.RFC3339,
+		"2006-01-02T15:04:05.999999",
+		"2006-01-02T15:04:05.999",
+		"2006-01-02T15:04:05",
+		"2006-01-02T15:04:05.999Z",
+		"2006-01-02T15:04:05Z",
+		"2006-01-02 15:04:05",
+		"2006-01-02",
+	}
+	for _, layout := range layouts {
+		t, err := time.Parse(layout, ts)
+		if err == nil {
+			d := int(time.Since(t).Hours() / 24)
+			if d < 0 {
+				d = 0
+			}
+			return fmt.Sprintf("%s (%dd)", t.Format("2006-01-02"), d)
+		}
+	}
+	// Last resort: pull the date prefix "YYYY-MM-DD" if it looks date-like.
+	if len(ts) >= 10 && ts[4] == '-' && ts[7] == '-' {
+		return ts[:10]
+	}
+	return ts
 }
 
 // visibility renders Movidesk ticket.type as "público"/"interno". Type 1 is
@@ -76,24 +125,6 @@ func (c bulkCandidate) clientLabel() string {
 	}
 }
 
-// daysSince parses a Movidesk timestamp and returns a "Nd" string. Empty when
-// the timestamp is missing or unparseable.
-func daysSince(ts string) string {
-	if ts == "" {
-		return ""
-	}
-	for _, layout := range []string{time.RFC3339Nano, time.RFC3339, "2006-01-02T15:04:05.999Z", "2006-01-02T15:04:05Z"} {
-		t, err := time.Parse(layout, ts)
-		if err == nil {
-			d := int(time.Since(t).Hours() / 24)
-			if d < 0 {
-				d = 0
-			}
-			return fmt.Sprintf("%dd", d)
-		}
-	}
-	return ""
-}
 
 // bulkSelection captures how the user picks tickets to act on.
 type bulkSelection struct {
@@ -425,7 +456,7 @@ func listCandidates(cmd *cobra.Command, svc *tickets.Service, sel *bulkSelection
 // flags. Forces a lean projection so the TUI selector stays snappy.
 func fetchCandidates(cmd *cobra.Command, svc *tickets.Service, sel *bulkSelection, past bool) ([]bulkCandidate, error) {
 	q := sel.of.query()
-	q.Select = []string{"id", "type", "subject", "status", "baseStatus", "owner", "ownerTeam", "createdDate", "lastUpdate", "justification"}
+	q.Select = []string{"id", "type", "subject", "status", "baseStatus", "owner", "ownerTeam", "createdDate", "lastUpdate", "lastActionDate", "justification"}
 	if len(q.Expand) == 0 {
 		q.Expand = []string{"clients($expand=organization)"}
 	}
@@ -489,10 +520,6 @@ func printPreview(w io.Writer, rows []bulkCandidate, body map[string]any, action
 	}
 	for i := 0; i < limit; i++ {
 		c := rows[i]
-		age := daysSince(c.LastUpdate)
-		if age != "" {
-			age = " · " + age + " desde última alt."
-		}
 		client := c.clientLabel()
 		if client != "" {
 			client = "  cliente: " + truncate(client, 50)
@@ -501,7 +528,8 @@ func printPreview(w io.Writer, rows []bulkCandidate, body map[string]any, action
 		if just != "" {
 			just = "  motivo: " + truncate(just, 30)
 		}
-		fmt.Fprintf(w, "  #%d  [%s · %s]%s%s%s\n      %s\n", c.ID, c.Status, c.visibility(), age, client, just, truncate(c.Subject, 90))
+		fmt.Fprintf(w, "  #%d  [%s · %s]  alt.: %s%s%s\n      %s\n",
+			c.ID, c.Status, c.visibility(), c.lastChangeCell(), client, just, truncate(c.Subject, 90))
 	}
 	if len(rows) > limit {
 		fmt.Fprintf(w, "  … e mais %d.\n", len(rows)-limit)

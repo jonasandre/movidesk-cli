@@ -227,8 +227,8 @@ func (m *pickerModel) View() string {
 		return b.String()
 	}
 
-	header := fmt.Sprintf("      %-7s %-8s %-12s %-5s %-18s %-28s %s",
-		"id", "visib.", "status", "idade", "motivo", "cliente / organização", "assunto")
+	header := fmt.Sprintf("      %-7s %-8s %-14s %-18s %-28s %-50s %s",
+		"id", "visib.", "status", "motivo", "cliente / organização", "assunto", "data alt.")
 	b.WriteString(stylHint.Render(header))
 	b.WriteString("\n")
 
@@ -253,12 +253,11 @@ func (m *pickerModel) View() string {
 		if m.selected[idx] {
 			mark = "[x]"
 		}
-		age := daysSince(r.LastUpdate)
-		ageCol := truncate(age, 5)
+		dateCol := r.lastChangeCell()
 		just := truncate(r.Justification, 18)
 		client := truncate(r.clientLabel(), 28)
-		line := fmt.Sprintf("  %s #%-6d %-8s %-12s %-5s %-18s %-28s %s",
-			mark, r.ID, r.visibility(), truncate(r.Status, 12), ageCol, just, client, truncate(r.Subject, 50))
+		line := fmt.Sprintf("  %s #%-6d %-8s %-14s %-18s %-28s %-50s %s",
+			mark, r.ID, r.visibility(), truncate(r.Status, 14), just, client, truncate(r.Subject, 50), dateCol)
 		if i == m.cursor {
 			line = "›" + line[1:]
 			line = stylCursor.Render(line)
