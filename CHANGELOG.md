@@ -10,12 +10,18 @@ projeto adere ao
 
 ## [Unreleased]
 
+## [1.3.0] — 2026-05-20
+
 ### Adicionado
 
-- `tickets bulk-update` aplica o mesmo PATCH a vários chamados. Os
-  alvos vêm de `--ids` / `--ids-file` ou de um `--filter` OData; em TTY
-  abre um seletor interativo (Bubble Tea) com busca, marcação e
-  paginação. Suporta `--dry-run`, `--force`, `--continue-on-error` e
+- `tickets bulk-update` aplica o mesmo PATCH a vários chamados. Alvos
+  vêm de `--ids` / `--ids-file` ou de um `--filter` OData; em TTY abre
+  um seletor interativo (Bubble Tea) com busca incremental, marcação
+  individual/em massa, paginação e colunas de id, visibilidade
+  (interno/público), status, motivo (justification), cliente /
+  organização, assunto, data da última alteração (com idade em dias) e
+  responsável (com fallback para a equipe quando o ticket não tem
+  agente). Suporta `--dry-run`, `--force`, `--continue-on-error` e
   `--report` (JSONL com `{id, ok, error, at}`). O corpo é montado pelos
   mesmos `--file` / `--from-template[-file]` / `--set` de
   `tickets update`. O rate-limit de 10 req/min do tenant continua sendo
@@ -26,9 +32,16 @@ projeto adere ao
   há mais de 90 dias) ou `both` (mescla as duas e dedup por id).
   Idêntica para `bulk-close`.
 - `tickets bulk-close` é um atalho do `bulk-update` que ajusta `status`
-  (padrão `Resolvido`), `justification` e adiciona uma `action` com o
-  texto de `--message`. `--public` registra a ação como visível ao
-  cliente; sem ele a ação é interna (`type=2`, `origin=9`).
+  (padrão `Resolvido`), envia `justification` (string vazia quando não
+  informada — o Movidesk exige o campo ao mudar Status) e adiciona uma
+  `action` com o texto de `--message`. Convenção alinhada com `tickets
+  actions add`: `--public` → `type=2` (visível ao cliente); sem
+  `--public` a ação é interna (`type=1`, `origin=9`). `createdBy.id`
+  da action é preenchido com `MOVIDESK_USER` / `--user` /
+  `tenant.DefaultUser` quando o body não traz um.
+- Listagem de candidatos no bulk pede `$expand=clients($expand=organization),owner`
+  pra trazer cliente, organização e agente inline; aplica `--top 100`
+  como default quando o usuário não passa `--top` nem `--all`.
 - Dependências: `github.com/charmbracelet/bubbletea` e
   `github.com/charmbracelet/bubbles` para o seletor TUI.
 
