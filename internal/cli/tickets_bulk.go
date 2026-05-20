@@ -125,7 +125,6 @@ func (c bulkCandidate) clientLabel() string {
 	}
 }
 
-
 // bulkSelection captures how the user picks tickets to act on.
 type bulkSelection struct {
 	of            odataFlags
@@ -620,4 +619,3 @@ func writeReport(w *bufio.Writer, id int, ok bool, errMsg string) {
 	_, _ = w.Write(line)
 	_, _ = w.WriteString("\n")
 }
-
