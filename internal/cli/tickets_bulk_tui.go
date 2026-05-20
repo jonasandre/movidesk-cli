@@ -83,6 +83,15 @@ func matchesNeedle(r bulkCandidate, needle string) bool {
 	if strings.Contains(strings.ToLower(r.OwnerTeam), needle) {
 		return true
 	}
+	if strings.Contains(strings.ToLower(r.Justification), needle) {
+		return true
+	}
+	if strings.Contains(strings.ToLower(r.clientLabel()), needle) {
+		return true
+	}
+	if strings.Contains(strings.ToLower(r.visibility()), needle) {
+		return true
+	}
 	if strings.Contains(fmt.Sprintf("%d", r.ID), needle) {
 		return true
 	}
@@ -218,6 +227,11 @@ func (m *pickerModel) View() string {
 		return b.String()
 	}
 
+	header := fmt.Sprintf("      %-7s %-8s %-12s %-5s %-18s %-28s %s",
+		"id", "visib.", "status", "idade", "motivo", "cliente / organização", "assunto")
+	b.WriteString(stylHint.Render(header))
+	b.WriteString("\n")
+
 	page := m.pageSize()
 	start := m.cursor - page/2
 	if start < 0 {
@@ -239,7 +253,12 @@ func (m *pickerModel) View() string {
 		if m.selected[idx] {
 			mark = "[x]"
 		}
-		line := fmt.Sprintf("  %s #%d  %-14s  %s", mark, r.ID, truncate(r.Status, 14), truncate(r.Subject, 70))
+		age := daysSince(r.LastUpdate)
+		ageCol := truncate(age, 5)
+		just := truncate(r.Justification, 18)
+		client := truncate(r.clientLabel(), 28)
+		line := fmt.Sprintf("  %s #%-6d %-8s %-12s %-5s %-18s %-28s %s",
+			mark, r.ID, r.visibility(), truncate(r.Status, 12), ageCol, just, client, truncate(r.Subject, 50))
 		if i == m.cursor {
 			line = "›" + line[1:]
 			line = stylCursor.Render(line)

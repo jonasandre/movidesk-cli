@@ -270,7 +270,7 @@ func TestE2E_TicketsBulkClose_HappyPath(t *testing.T) {
 	require.Len(t, actions, 1)
 	act := actions[0].(map[string]any)
 	assert.Equal(t, "Fechado por inatividade", act["description"])
-	assert.EqualValues(t, 2, act["type"]) // internal by default
+	assert.EqualValues(t, 1, act["type"]) // internal by default
 	assert.EqualValues(t, 9, act["origin"])
 }
 
@@ -296,7 +296,7 @@ func TestE2E_TicketsBulkClose_PublicAndCustomStatus(t *testing.T) {
 	assert.Equal(t, "Encerrado conforme acordo", body["justification"])
 	actions := body["actions"].([]any)
 	act := actions[0].(map[string]any)
-	assert.EqualValues(t, 1, act["type"]) // public
+	assert.EqualValues(t, 2, act["type"]) // public
 }
 
 func TestE2E_TicketsBulkUpdate_SourcePast(t *testing.T) {
@@ -363,6 +363,64 @@ func TestE2E_TicketsBulkUpdate_InvalidSource(t *testing.T) {
 	)
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "--source")
+}
+
+func TestE2E_TicketsBulkUpdate_PreviewShowsJustClientAge(t *testing.T) {
+	be := newBulkServer([]byte(`[
+		{
+			"id": 9001,
+			"type": 2,
+			"subject": "Parado há tempo",
+			"status": "Parado",
+			"baseStatus": "Stopped",
+			"justification": "Aguardando cliente",
+			"lastUpdate": "2025-12-01T10:00:00.000Z",
+			"clients": [{"businessName": "João Silva", "organization": {"businessName": "Acme Ltda"}}]
+		}
+	]`))
+	srv := httptest.NewServer(be.handler())
+	defer srv.Close()
+	setupTenant(t, srv.URL)
+
+	_, errOut, err := runCmd(t,
+		"tickets", "bulk-update",
+		"--filter", "id eq 9001",
+		"--all-from-filter",
+		"--set", "status=Resolvido",
+		"--dry-run",
+	)
+	require.NoError(t, err)
+	assert.Contains(t, errOut, "Acme Ltda")
+	assert.Contains(t, errOut, "João Silva")
+	assert.Contains(t, errOut, "Aguardando cliente")
+	assert.Contains(t, errOut, "desde última alt.")
+	assert.Contains(t, errOut, "público")
+}
+
+func TestE2E_TicketsBulkClose_InjectsCreatedByOnAction(t *testing.T) {
+	be := newBulkServer(listFixture())
+	srv := httptest.NewServer(be.handler())
+	defer srv.Close()
+	setupTenant(t, srv.URL)
+
+	// Configure tenant default user via the same mechanism `tickets create` uses.
+	t.Setenv("MOVIDESK_USER", "agente-42")
+
+	_, _, err := runCmd(t,
+		"tickets", "bulk-close",
+		"--ids", "1",
+		"--message", "Fechado",
+		"--force",
+	)
+	require.NoError(t, err)
+
+	var body map[string]any
+	require.NoError(t, json.Unmarshal(be.bodies[1], &body))
+	actions := body["actions"].([]any)
+	act := actions[0].(map[string]any)
+	createdBy, ok := act["createdBy"].(map[string]any)
+	require.True(t, ok, "action.createdBy deve ser injetado a partir do usuário do tenant")
+	assert.Equal(t, "agente-42", createdBy["id"])
 }
 
 func TestE2E_TicketsBulkClose_RequiresMessage(t *testing.T) {

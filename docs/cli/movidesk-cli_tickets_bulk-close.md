@@ -9,7 +9,7 @@ com a mensagem informada em cada chamado selecionado. Equivale a um
 'tickets bulk-update' que monta o corpo automaticamente.
 
 Use --public para registrar a ação como pública (visível pelo cliente). Sem --public
-a ação é interna (type=2). O nome exato do status deve bater com o configurado
+a ação é interna (type=1). O nome exato do status deve bater com o configurado
 no tenant (padrão: "Resolvido"). O campo justification é sempre enviado (o Movidesk
 exige ao mudar Status); fica vazio quando --justification não é informado, o que
 funciona pra status sem motivos cadastrados.
@@ -33,7 +33,7 @@ movidesk-cli tickets bulk-close [flags]
 ### Options
 
 ```
-      --action-type int        tipo da ação: 1=pública, 2=interna (padrão: 2)
+      --action-type int        tipo da ação: 1=interna, 2=pública (padrão: 1)
       --all                    busca todas as páginas (auto-paginação)
       --all-from-filter        usa todos os resultados do --filter sem abrir o seletor (necessário em ambientes sem TTY)
       --continue-on-error      continua o lote mesmo após uma falha individual
@@ -49,7 +49,7 @@ movidesk-cli tickets bulk-close [flags]
       --message string         texto da ação de fechamento (obrigatório)
       --orderby strings        cláusulas $orderby separadas por vírgula (ex.: "id desc")
       --pick                   abre seletor TUI mesmo quando --ids/--ids-file forem informados
-      --public                 atalho para --action-type=1
+      --public                 atalho para --action-type=2
       --report string          grava resultado por ticket em arquivo JSONL
       --select strings         campos $select separados por vírgula
       --skip int               $skip: offset no servidor

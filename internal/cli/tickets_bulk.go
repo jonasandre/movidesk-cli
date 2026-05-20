@@ -21,6 +21,7 @@ import (
 // bulkCandidate is a minimal ticket projection used for selection + preview.
 type bulkCandidate struct {
 	ID         int    `json:"id"`
+	Type       int    `json:"type"`
 	Subject    string `json:"subject"`
 	Status     string `json:"status"`
 	BaseStatus string `json:"baseStatus"`
@@ -28,7 +29,70 @@ type bulkCandidate struct {
 	Owner      *struct {
 		BusinessName string `json:"businessName"`
 	} `json:"owner,omitempty"`
-	CreatedDate string `json:"createdDate"`
+	CreatedDate   string                `json:"createdDate"`
+	LastUpdate    string                `json:"lastUpdate"`
+	Justification string                `json:"justification"`
+	Clients       []bulkCandidateClient `json:"clients,omitempty"`
+}
+
+// visibility renders Movidesk ticket.type as "público"/"interno". Type 1 is
+// internal and type 2 is public; missing/unknown returns "—".
+func (c bulkCandidate) visibility() string {
+	switch c.Type {
+	case 1:
+		return "interno"
+	case 2:
+		return "público"
+	default:
+		return "—"
+	}
+}
+
+type bulkCandidateClient struct {
+	BusinessName string `json:"businessName"`
+	Organization *struct {
+		BusinessName string `json:"businessName"`
+	} `json:"organization,omitempty"`
+}
+
+// clientLabel renders "Org — Cliente" or whatever pieces are present, in a
+// compact form suitable for the picker/preview.
+func (c bulkCandidate) clientLabel() string {
+	if len(c.Clients) == 0 {
+		return ""
+	}
+	cl := c.Clients[0]
+	org := ""
+	if cl.Organization != nil {
+		org = cl.Organization.BusinessName
+	}
+	switch {
+	case org != "" && cl.BusinessName != "":
+		return org + " — " + cl.BusinessName
+	case org != "":
+		return org
+	default:
+		return cl.BusinessName
+	}
+}
+
+// daysSince parses a Movidesk timestamp and returns a "Nd" string. Empty when
+// the timestamp is missing or unparseable.
+func daysSince(ts string) string {
+	if ts == "" {
+		return ""
+	}
+	for _, layout := range []string{time.RFC3339Nano, time.RFC3339, "2006-01-02T15:04:05.999Z", "2006-01-02T15:04:05Z"} {
+		t, err := time.Parse(layout, ts)
+		if err == nil {
+			d := int(time.Since(t).Hours() / 24)
+			if d < 0 {
+				d = 0
+			}
+			return fmt.Sprintf("%dd", d)
+		}
+	}
+	return ""
 }
 
 // bulkSelection captures how the user picks tickets to act on.
@@ -131,7 +195,7 @@ com a mensagem informada em cada chamado selecionado. Equivale a um
 'tickets bulk-update' que monta o corpo automaticamente.
 
 Use --public para registrar a ação como pública (visível pelo cliente). Sem --public
-a ação é interna (type=2). O nome exato do status deve bater com o configurado
+a ação é interna (type=1). O nome exato do status deve bater com o configurado
 no tenant (padrão: "Resolvido"). O campo justification é sempre enviado (o Movidesk
 exige ao mudar Status); fica vazio quando --justification não é informado, o que
 funciona pra status sem motivos cadastrados.`,
@@ -147,13 +211,13 @@ funciona pra status sem motivos cadastrados.`,
 				return errors.New("--message é obrigatório (texto da ação de fechamento)")
 			}
 			if public {
-				actionType = 1
-			}
-			if actionType == 0 {
 				actionType = 2
 			}
+			if actionType == 0 {
+				actionType = 1
+			}
 			if actionType != 1 && actionType != 2 {
-				return fmt.Errorf("--action-type inválido %d (1=pública, 2=interna)", actionType)
+				return fmt.Errorf("--action-type inválido %d (1=interna, 2=pública)", actionType)
 			}
 			if status == "" {
 				status = "Resolvido"
@@ -175,8 +239,8 @@ funciona pra status sem motivos cadastrados.`,
 	cmd.Flags().StringVar(&message, "message", "", "texto da ação de fechamento (obrigatório)")
 	cmd.Flags().StringVar(&justification, "justification", "", "justificativa do ticket (padrão: igual a --status)")
 	cmd.Flags().StringVar(&status, "status", "", "nome do status final (padrão: Resolvido)")
-	cmd.Flags().IntVar(&actionType, "action-type", 0, "tipo da ação: 1=pública, 2=interna (padrão: 2)")
-	cmd.Flags().BoolVar(&public, "public", false, "atalho para --action-type=1")
+	cmd.Flags().IntVar(&actionType, "action-type", 0, "tipo da ação: 1=interna, 2=pública (padrão: 1)")
+	cmd.Flags().BoolVar(&public, "public", false, "atalho para --action-type=2")
 	_ = cmd.MarkFlagRequired("message")
 	return cmd
 }
@@ -187,6 +251,8 @@ func runBulk(cmd *cobra.Command, sel *bulkSelection, exec *bulkExec, body map[st
 		return err
 	}
 	svc := tickets.New(r.client)
+
+	injectActionsCreatedBy(body, r.userID)
 
 	candidates, err := resolveCandidates(cmd, svc, sel)
 	if err != nil {
@@ -359,7 +425,10 @@ func listCandidates(cmd *cobra.Command, svc *tickets.Service, sel *bulkSelection
 // flags. Forces a lean projection so the TUI selector stays snappy.
 func fetchCandidates(cmd *cobra.Command, svc *tickets.Service, sel *bulkSelection, past bool) ([]bulkCandidate, error) {
 	q := sel.of.query()
-	q.Select = []string{"id", "subject", "status", "baseStatus", "owner", "ownerTeam", "createdDate"}
+	q.Select = []string{"id", "type", "subject", "status", "baseStatus", "owner", "ownerTeam", "createdDate", "lastUpdate", "justification"}
+	if len(q.Expand) == 0 {
+		q.Expand = []string{"clients($expand=organization)"}
+	}
 
 	var raw []byte
 	var err error
@@ -420,11 +489,19 @@ func printPreview(w io.Writer, rows []bulkCandidate, body map[string]any, action
 	}
 	for i := 0; i < limit; i++ {
 		c := rows[i]
-		subj := c.Subject
-		if len(subj) > 60 {
-			subj = subj[:57] + "..."
+		age := daysSince(c.LastUpdate)
+		if age != "" {
+			age = " · " + age + " desde última alt."
 		}
-		fmt.Fprintf(w, "  #%d  [%s]  %s\n", c.ID, c.Status, subj)
+		client := c.clientLabel()
+		if client != "" {
+			client = "  cliente: " + truncate(client, 50)
+		}
+		just := c.Justification
+		if just != "" {
+			just = "  motivo: " + truncate(just, 30)
+		}
+		fmt.Fprintf(w, "  #%d  [%s · %s]%s%s%s\n      %s\n", c.ID, c.Status, c.visibility(), age, client, just, truncate(c.Subject, 90))
 	}
 	if len(rows) > limit {
 		fmt.Fprintf(w, "  … e mais %d.\n", len(rows)-limit)
@@ -434,6 +511,40 @@ func printPreview(w io.Writer, rows []bulkCandidate, body map[string]any, action
 	eta := estimateETA(len(rows))
 	if eta > 0 {
 		fmt.Fprintf(w, "\nETA (10 req/min): ~%s\n", eta.Round(time.Second))
+	}
+}
+
+// injectActionsCreatedBy sets {"createdBy":{"id": userID}} on each entry of
+// body["actions"] that doesn't already carry one. Matches the convention used
+// by `tickets actions add`. Top-level ticket fields are left untouched.
+func injectActionsCreatedBy(body map[string]any, userID string) {
+	if userID == "" || body == nil {
+		return
+	}
+	raw, ok := body["actions"]
+	if !ok {
+		return
+	}
+	arr, ok := raw.([]map[string]any)
+	if ok {
+		for _, a := range arr {
+			if _, present := a["createdBy"]; !present {
+				a["createdBy"] = map[string]any{"id": userID}
+			}
+		}
+		return
+	}
+	// fallback for []any (e.g., bodies loaded from --file/--from-template)
+	if anyArr, ok := raw.([]any); ok {
+		for _, item := range anyArr {
+			a, ok := item.(map[string]any)
+			if !ok {
+				continue
+			}
+			if _, present := a["createdBy"]; !present {
+				a["createdBy"] = map[string]any{"id": userID}
+			}
+		}
 	}
 }
 
