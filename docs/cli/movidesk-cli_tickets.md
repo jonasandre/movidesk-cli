@@ -35,6 +35,7 @@ inline via --set chave=valor.
 * [movidesk-cli tickets actions](movidesk-cli_tickets_actions.md)	 - Inspeciona e modifica ações de chamados
 * [movidesk-cli tickets assets](movidesk-cli_tickets_assets.md)	 - Inspeciona ativos vinculados ao chamado
 * [movidesk-cli tickets attach](movidesk-cli_tickets_attach.md)	 - Envia um arquivo para uma ação de chamado via /ticketFileUpload
+* [movidesk-cli tickets bulk-cancel](movidesk-cli_tickets_bulk-cancel.md)	 - Cancela vários chamados em lote, registrando uma ação com o motivo
 * [movidesk-cli tickets bulk-close](movidesk-cli_tickets_bulk-close.md)	 - Encerra vários chamados em lote, registrando uma ação com a mensagem
 * [movidesk-cli tickets bulk-update](movidesk-cli_tickets_bulk-update.md)	 - Aplica o mesmo PATCH a vários chamados (com seletor interativo)
 * [movidesk-cli tickets clients](movidesk-cli_tickets_clients.md)	 - Inspeciona clientes de um chamado

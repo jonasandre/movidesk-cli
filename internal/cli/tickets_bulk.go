@@ -207,7 +207,17 @@ gravar o status de cada chamado em um JSONL e --continue-on-error para não abor
 	return cmd
 }
 
-func newTicketsBulkCloseCmd() *cobra.Command {
+type bulkFinalizeOpts struct {
+	use           string
+	short         string
+	long          string
+	example       string
+	defaultStatus string
+	actionLabel   string // ex: "fechamento", "cancelamento"
+	operationName string // passado pro runBulk (telemetria/erros)
+}
+
+func newTicketsBulkFinalizeCmd(opts bulkFinalizeOpts) *cobra.Command {
 	var (
 		sel           bulkSelection
 		exec          bulkExec
@@ -218,27 +228,13 @@ func newTicketsBulkCloseCmd() *cobra.Command {
 		public        bool
 	)
 	cmd := &cobra.Command{
-		Use:   "bulk-close",
-		Short: "Encerra vários chamados em lote, registrando uma ação com a mensagem",
-		Long: `Atualiza o status para 'Resolvido' (configurável) e adiciona uma ação
-com a mensagem informada em cada chamado selecionado. Equivale a um
-'tickets bulk-update' que monta o corpo automaticamente.
-
-Use --public para registrar a ação como pública (visível pelo cliente). Sem --public
-a ação é interna (type=1). O nome exato do status deve bater com o configurado
-no tenant (padrão: "Resolvido"). O campo justification é sempre enviado (o Movidesk
-exige ao mudar Status); fica vazio quando --justification não é informado, o que
-funciona pra status sem motivos cadastrados.`,
-		Example: `  movidesk-cli tickets bulk-close \
-    --filter "baseStatus eq 'Stopped' and lastUpdate lt 2026-05-01T00:00:00.000Z" \
-    --message "Fechado por inatividade após 30 dias sem retorno do cliente"
-
-  # variação pública e com justificativa customizada
-  movidesk-cli tickets bulk-close --ids 12,34,56 \
-    --message "Concluído conforme alinhamento" --public --justification "Concluído"`,
+		Use:     opts.use,
+		Short:   opts.short,
+		Long:    opts.long,
+		Example: opts.example,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if strings.TrimSpace(message) == "" {
-				return errors.New("--message é obrigatório (texto da ação de fechamento)")
+				return fmt.Errorf("--message é obrigatório (texto da ação de %s)", opts.actionLabel)
 			}
 			if public {
 				actionType = 2
@@ -250,7 +246,7 @@ funciona pra status sem motivos cadastrados.`,
 				return fmt.Errorf("--action-type inválido %d (1=interna, 2=pública)", actionType)
 			}
 			if status == "" {
-				status = "Resolvido"
+				status = opts.defaultStatus
 			}
 			body := map[string]any{
 				"status":        status,
@@ -261,18 +257,71 @@ funciona pra status sem motivos cadastrados.`,
 					"description": message,
 				}},
 			}
-			return runBulk(cmd, &sel, &exec, body, "tickets bulk-close")
+			return runBulk(cmd, &sel, &exec, body, opts.operationName)
 		},
 	}
 	sel.bind(cmd)
 	exec.bind(cmd)
-	cmd.Flags().StringVar(&message, "message", "", "texto da ação de fechamento (obrigatório)")
+	cmd.Flags().StringVar(&message, "message", "", fmt.Sprintf("texto da ação de %s (obrigatório)", opts.actionLabel))
 	cmd.Flags().StringVar(&justification, "justification", "", "justificativa do ticket (padrão: igual a --status)")
-	cmd.Flags().StringVar(&status, "status", "", "nome do status final (padrão: Resolvido)")
+	cmd.Flags().StringVar(&status, "status", "", fmt.Sprintf("nome do status final (padrão: %s)", opts.defaultStatus))
 	cmd.Flags().IntVar(&actionType, "action-type", 0, "tipo da ação: 1=interna, 2=pública (padrão: 1)")
 	cmd.Flags().BoolVar(&public, "public", false, "atalho para --action-type=2")
 	_ = cmd.MarkFlagRequired("message")
 	return cmd
+}
+
+func newTicketsBulkCloseCmd() *cobra.Command {
+	return newTicketsBulkFinalizeCmd(bulkFinalizeOpts{
+		use:   "bulk-close",
+		short: "Encerra vários chamados em lote, registrando uma ação com a mensagem",
+		long: `Atualiza o status para 'Resolvido' (configurável) e adiciona uma ação
+com a mensagem informada em cada chamado selecionado. Equivale a um
+'tickets bulk-update' que monta o corpo automaticamente.
+
+Use --public para registrar a ação como pública (visível pelo cliente). Sem --public
+a ação é interna (type=1). O nome exato do status deve bater com o configurado
+no tenant (padrão: "Resolvido"). O campo justification é sempre enviado (o Movidesk
+exige ao mudar Status); fica vazio quando --justification não é informado, o que
+funciona pra status sem motivos cadastrados.`,
+		example: `  movidesk-cli tickets bulk-close \
+    --filter "baseStatus eq 'Stopped' and lastUpdate lt 2026-05-01T00:00:00.000Z" \
+    --message "Fechado por inatividade após 30 dias sem retorno do cliente"
+
+  # variação pública e com justificativa customizada
+  movidesk-cli tickets bulk-close --ids 12,34,56 \
+    --message "Concluído conforme alinhamento" --public --justification "Concluído"`,
+		defaultStatus: "Resolvido",
+		actionLabel:   "fechamento",
+		operationName: "tickets bulk-close",
+	})
+}
+
+func newTicketsBulkCancelCmd() *cobra.Command {
+	return newTicketsBulkFinalizeCmd(bulkFinalizeOpts{
+		use:   "bulk-cancel",
+		short: "Cancela vários chamados em lote, registrando uma ação com o motivo",
+		long: `Atualiza o status para 'Cancelado' (configurável) e adiciona uma ação
+com o motivo informado em cada chamado selecionado. Mesma mecânica do
+'tickets bulk-close', porém pensado para descartes (duplicados, abandonados,
+fora de escopo) — não para encerramentos com solução.
+
+Use --public para registrar a ação como pública (visível pelo cliente). Sem --public
+a ação é interna (type=1). O nome exato do status deve bater com o configurado
+no tenant (padrão: "Cancelado"). O campo justification é sempre enviado (o Movidesk
+exige ao mudar Status); fica vazio quando --justification não é informado, o que
+funciona pra status sem motivos cadastrados.`,
+		example: `  movidesk-cli tickets bulk-cancel \
+    --filter "baseStatus eq 'New' and createdDate lt 2026-04-01T00:00:00.000Z" \
+    --message "Cancelado por falta de retorno do cliente"
+
+  # variação pública e com justificativa customizada
+  movidesk-cli tickets bulk-cancel --ids 12,34,56 \
+    --message "Duplicado do #99" --public --justification "Duplicado"`,
+		defaultStatus: "Cancelado",
+		actionLabel:   "cancelamento",
+		operationName: "tickets bulk-cancel",
+	})
 }
 
 func runBulk(cmd *cobra.Command, sel *bulkSelection, exec *bulkExec, body map[string]any, action string) error {
@@ -459,6 +508,7 @@ func fetchCandidates(cmd *cobra.Command, svc *tickets.Service, sel *bulkSelectio
 	if len(q.Expand) == 0 {
 		q.Expand = []string{"clients($expand=organization)", "owner"}
 	}
+	applyDefaultTicketOrder(&q)
 	if !sel.of.all && q.Top == 0 {
 		q.Top = 100
 	}

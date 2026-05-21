@@ -49,6 +49,15 @@ func (f *odataFlags) query() odata.Query {
 	}
 }
 
+// applyDefaultTicketOrder injeta "lastUpdate desc" quando o usuário não
+// passou --orderby. Padrão útil para listagens de tickets, onde o mais
+// recentemente atualizado costuma ser o que importa.
+func applyDefaultTicketOrder(q *odata.Query) {
+	if len(q.OrderBy) == 0 {
+		q.OrderBy = []string{"lastUpdate asc"}
+	}
+}
+
 // columnsFlag binds --columns once, owned by the parent command.
 type columnsFlag struct{ cols []string }
 
@@ -74,6 +83,7 @@ inline via --set chave=valor.`,
 		newTicketsUpdateCmd(),
 		newTicketsBulkUpdateCmd(),
 		newTicketsBulkCloseCmd(),
+		newTicketsBulkCancelCmd(),
 		newTicketsHTMLCmd(),
 		newTicketsPastCmd(),
 		newTicketsMergedCmd(),
@@ -101,6 +111,9 @@ func newTicketsListCmd() *cobra.Command {
 		Long: `Lista chamados via GET /tickets. Cobre apenas os últimos 90 dias —
 para chamados arquivados use 'tickets past list' com os mesmos filtros.
 
+Ordenação padrão: 'lastUpdate desc' (mais recentemente atualizados primeiro).
+Use --orderby para sobrescrever.
+
 A sintaxe completa de --filter, --select e --orderby está em:
   movidesk-cli topics filters`,
 		Example: `  # tickets em atendimento, ordenados pelo mais recente
@@ -117,6 +130,7 @@ A sintaxe completa de --filter, --select e --orderby está em:
 			}
 			svc := tickets.New(r.client)
 			q := of.query()
+			applyDefaultTicketOrder(&q)
 
 			out := cmd.OutOrStdout()
 			if of.all {
@@ -342,6 +356,7 @@ Sintaxe completa em: movidesk-cli topics filters`,
 			}
 			svc := tickets.New(r.client)
 			q := of.query()
+			applyDefaultTicketOrder(&q)
 			out := cmd.OutOrStdout()
 			if of.all {
 				if q.Top == 0 {
@@ -394,6 +409,7 @@ Sintaxe completa em: movidesk-cli topics filters`,
 			}
 			svc := tickets.New(r.client)
 			q := of.query()
+			applyDefaultTicketOrder(&q)
 			out := cmd.OutOrStdout()
 			if of.all {
 				if q.Top == 0 {

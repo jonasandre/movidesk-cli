@@ -433,3 +433,45 @@ func TestE2E_TicketsBulkClose_RequiresMessage(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "message")
 }
+
+func TestE2E_TicketsBulkCancel_HappyPath(t *testing.T) {
+	be := newBulkServer(listFixture())
+	srv := httptest.NewServer(be.handler())
+	defer srv.Close()
+	setupTenant(t, srv.URL)
+
+	_, errOut, err := runCmd(t,
+		"tickets", "bulk-cancel",
+		"--ids", "1,2",
+		"--message", "Cancelado a pedido do cliente",
+		"--force",
+	)
+	require.NoError(t, err, errOut)
+	assert.Equal(t, 1, be.patched[1])
+	assert.Equal(t, 1, be.patched[2])
+
+	var body map[string]any
+	require.NoError(t, json.Unmarshal(be.bodies[1], &body))
+	assert.Equal(t, "Cancelado", body["status"])
+	just, hasJust := body["justification"]
+	assert.True(t, hasJust, "justification deve sempre estar presente no body (Movidesk exige o campo)")
+	assert.Equal(t, "", just, "default vazio quando --justification não é informado")
+	actions, ok := body["actions"].([]any)
+	require.True(t, ok)
+	require.Len(t, actions, 1)
+	act := actions[0].(map[string]any)
+	assert.Equal(t, "Cancelado a pedido do cliente", act["description"])
+	assert.EqualValues(t, 1, act["type"])
+	assert.EqualValues(t, 9, act["origin"])
+}
+
+func TestE2E_TicketsBulkCancel_RequiresMessage(t *testing.T) {
+	be := newBulkServer(nil)
+	srv := httptest.NewServer(be.handler())
+	defer srv.Close()
+	setupTenant(t, srv.URL)
+
+	_, _, err := runCmd(t, "tickets", "bulk-cancel", "--ids", "1", "--force")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "message")
+}

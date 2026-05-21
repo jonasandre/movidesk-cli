@@ -7,6 +7,9 @@ Lista chamados (últimos 90 dias; mais antigos em `tickets past list`)
 Lista chamados via GET /tickets. Cobre apenas os últimos 90 dias —
 para chamados arquivados use 'tickets past list' com os mesmos filtros.
 
+Ordenação padrão: 'lastUpdate desc' (mais recentemente atualizados primeiro).
+Use --orderby para sobrescrever.
+
 A sintaxe completa de --filter, --select e --orderby está em:
   movidesk-cli topics filters
 

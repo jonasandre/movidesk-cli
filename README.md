@@ -139,7 +139,7 @@ Alguns pontos de entrada comuns:
 | Família | Destaques |
 |---|---|
 | `auth` | `login`, `list`, `switch`, `status`, `set-user`, `logout`, `token` |
-| `tickets` | `list`, `get`, `create`, `update`, `bulk-update`, `bulk-close`, `attach`, `actions`, `clients`, `relations`, `timeline`, `customfields`, `past`, `merged`, `html` |
+| `tickets` | `list`, `get`, `create`, `update`, `bulk-update`, `bulk-close`, `bulk-cancel`, `attach`, `actions`, `clients`, `relations`, `timeline`, `customfields`, `past`, `merged`, `html` |
 | `persons` | `list`, `get`, `create`, `update`, `delete`, `customfields` |
 | `services` | `list`, `get`, `create`, `update`, `delete` |
 | `activities` | `list`, `get`, `create`, `update`, `delete`, `add-teams` |
@@ -239,11 +239,14 @@ campos aninhados).
 req/min e tenta novamente em 429/5xx respeitando `Retry-After`.
 `--no-retry` desativa retentativas pra debug.
 
-**Operações em lote (`tickets bulk-update` / `tickets bulk-close`)** —
+**Operações em lote (`tickets bulk-update` / `tickets bulk-close` / `tickets bulk-cancel`)** —
 seleciona chamados por `--ids`, `--ids-file` ou `--filter` OData; em
 TTY abre seletor com checkbox + busca. Aplica o mesmo PATCH a todos.
 `bulk-close` ajusta `status` (padrão `Resolvido`) e cria uma `action`
-com `--message` (use `--public` para visível ao cliente). Flags úteis:
+com `--message` (use `--public` para visível ao cliente). `bulk-cancel`
+tem a mesma mecânica, mas padroniza `status=Cancelado` — use para
+descartar chamados sem solução (duplicados, abandonados, fora de escopo).
+Flags úteis:
 `--dry-run` (não chama API), `--force` (pula confirmação),
 `--continue-on-error` (não aborta na primeira falha), `--report
 caminho.jsonl` (uma linha por chamado: `{id, ok, error, at}`).
