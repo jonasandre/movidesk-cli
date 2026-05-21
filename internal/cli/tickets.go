@@ -111,7 +111,7 @@ func newTicketsListCmd() *cobra.Command {
 		Long: `Lista chamados via GET /tickets. Cobre apenas os últimos 90 dias —
 para chamados arquivados use 'tickets past list' com os mesmos filtros.
 
-Ordenação padrão: 'lastUpdate desc' (mais recentemente atualizados primeiro).
+Ordenação padrão: 'lastUpdate asc' (mais antigos no topo — fila de triagem).
 Use --orderby para sobrescrever.
 
 A sintaxe completa de --filter, --select e --orderby está em:

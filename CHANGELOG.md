@@ -10,6 +10,32 @@ projeto adere ao
 
 ## [Unreleased]
 
+## [1.4.0] — 2026-05-21
+
+### Adicionado
+
+- `tickets bulk-cancel` cancela vários chamados em lote com a mesma
+  mecânica de `bulk-close`, mas padronizando `status=Cancelado` e ação
+  de **cancelamento** (em vez de fechamento). Pensado para descartes
+  (duplicados, abandonados, fora de escopo) — separa intenção em logs
+  e relatórios em vez de obrigar `bulk-close --status=Cancelado`.
+  Aceita `--message`, `--justification`, `--status`, `--public`,
+  `--action-type` e todos os `bulkSelection` / `bulkExec` (`--ids`,
+  `--ids-file`, `--filter`, `--pick`, `--source live|past|both`,
+  `--dry-run`, `--force`, `--continue-on-error`, `--report`).
+- Internamente, `bulk-close` e `bulk-cancel` agora compartilham um
+  builder único (`newTicketsBulkFinalizeCmd`) — só diferem em status
+  default e textos de ajuda. Sem mudança de comportamento para
+  `bulk-close`.
+
+### Alterado
+
+- Listagens de chamados (`tickets list`, `tickets past list`,
+  `tickets merged list`) e o seletor de candidatos do `bulk-*` agora
+  ordenam por `lastUpdate asc` quando `--orderby` não é informado.
+  Atende fluxo de triagem (mais antigos no topo da fila). Passe
+  `--orderby` explícito para sobrescrever.
+
 ## [1.3.0] — 2026-05-20
 
 ### Adicionado
@@ -260,7 +286,12 @@ integração do Movidesk.
   subjacente reemite a resposta sem alterações, então mesmo campos
   que o SDK ainda não tipa são preservados de ponta a ponta.
 
-[Unreleased]: https://github.com/jonasandre/movidesk-cli/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/jonasandre/movidesk-cli/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/jonasandre/movidesk-cli/compare/v1.3.0...v1.4.0
+[1.3.0]: https://github.com/jonasandre/movidesk-cli/compare/v1.2.1...v1.3.0
+[1.2.1]: https://github.com/jonasandre/movidesk-cli/compare/v1.2.0...v1.2.1
+[1.2.0]: https://github.com/jonasandre/movidesk-cli/compare/v1.1.1...v1.2.0
+[1.1.1]: https://github.com/jonasandre/movidesk-cli/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/jonasandre/movidesk-cli/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/jonasandre/movidesk-cli/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/jonasandre/movidesk-cli/compare/v1.0.0...v1.0.1
